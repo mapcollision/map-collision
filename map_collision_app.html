@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAP COLLISION CENTER</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <style>
 :root {
   --naranja:#E8640A; --naranja-dark:#B84E08; --naranja-light:#FDE8D8;
@@ -529,22 +529,34 @@ let ordenActualFila = -1;
 //  AUTH
 // ══════════════════════════════════════════════════
 function iniciarSesion() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID, scope: SCOPES,
-    callback: async (resp) => {
-      if (resp.error) { toast('Error de autenticación', 'error'); return; }
-      accessToken = resp.access_token;
-      const uinfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
-        {headers:{Authorization:'Bearer '+accessToken}}).then(r=>r.json());
-      document.getElementById('user-name').textContent = uinfo.name||uinfo.email;
-      document.getElementById('user-avatar').src = uinfo.picture||'';
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      await cargarBD();
-      cargarTrello();
+  try {
+    if (typeof google === 'undefined' || !google.accounts) {
+      alert('El servicio de Google aun no carga. Espera unos segundos y vuelve a intentar.');
+      return;
     }
-  });
-  tokenClient.requestAccessToken({prompt:''});
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: async (resp) => {
+        if (resp.error) { toast('Error: ' + (resp.error_description||resp.error), 'error'); return; }
+        accessToken = resp.access_token;
+        try {
+          const uinfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
+            {headers:{Authorization:'Bearer '+accessToken}}).then(r=>r.json());
+          document.getElementById('user-name').textContent = uinfo.name||uinfo.email||'Usuario';
+          document.getElementById('user-avatar').src = uinfo.picture||'';
+        } catch(e) { console.log('Info usuario:', e); }
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        await cargarBD();
+        cargarTrello();
+      }
+    });
+    tokenClient.requestAccessToken({prompt:'select_account'});
+  } catch(e) {
+    alert('Error al iniciar sesion: ' + e.message + '. Recarga la pagina e intenta de nuevo.');
+    console.error(e);
+  }
 }
 
 // ══════════════════════════════════════════════════
