@@ -697,15 +697,16 @@ function carCard(row, accentColor) {
   else if (clasif === 'fuerte' || clasif === 'severo') carBody = '#38A169'; // verde
   else carBody = '#A0AEC0';                                // gris por defecto
 
-  return `<div class="car-card ${fechaClass==='late'?'retraso':fechaClass==='ok'?'en-tiempo':''}" onclick="abrirModal('${no}')">
-    <div class="car-icon">${svgAuto(carBody)}</div>
-    <div class="car-info">
-      <div class="car-orden">${no}</div>
-      <div class="car-unidad">${unidad||'—'}</div>
-      <span class="car-fecha ${fechaClass}">${fechaLabel}</span>
-    </div>
-    <div class="car-avance">${dots}</div>
-  </div>`;
+  const cardClass = (fechaClass==='late') ? 'car-card retraso' : (fechaClass==='ok') ? 'car-card en-tiempo' : 'car-card';
+  return '<div class="' + cardClass + '" onclick="abrirModal(\'' + no + '\')">'
+    + '<div class="car-icon">' + svgAuto(carBody) + '</div>'
+    + '<div class="car-info">'
+    + '<div class="car-orden">' + no + '</div>'
+    + '<div class="car-unidad">' + (unidad||'—') + '</div>'
+    + '<span class="car-fecha ' + fechaClass + '">' + fechaLabel + '</span>'
+    + '</div>'
+    + '<div class="car-avance">' + dots + '</div>'
+    + '</div>';
 }
 
 function colorAuto(colorStr) {
@@ -792,7 +793,7 @@ function abrirModal(noOrden) {
         ${sec.campos.map(([lbl,val]) => `
           <div class="modal-field">
             <span class="mf-label">${lbl}</span>
-            <span class="mf-value ${val?'':''">${val||'—'}</span>
+            <span class="mf-value">${val||'—'}</span>
           </div>`).join('')}
       </div>
     </div>`).join('');
