@@ -873,10 +873,10 @@ function actualizarTablasPendientes() {
 
 function renderPending(tbodyId,rows,cols,fnAbrir) {
   const tbody=document.getElementById(tbodyId);
-  tbody.innerHTML=rows.length?rows.map(r=>`
-    <tr>${cols.map((c,i)=>i===0?`<td><strong>${r[c]||''}</strong></td>`:`<td>${c===IDX.statusVal||c===IDX.statusRef?pillStatus(r[c]):(r[c]||'')}</td>`).join('')}
-    <td><button class="btn btn-primary btn-sm" onclick="${fnAbrir}('${r[IDX.noOrden]}')">Cargar</button></td></tr>`).join(''):
-    `<tr><td colspan="${cols.length+1}" style="text-align:center;color:var(--gris-medio);padding:16px">Sin órdenes pendientes</td></tr>`;
+  tbody.innerHTML=rows.length?rows.map(function(r){
+    var celdas=cols.map(function(c,i){return i===0?'<td><strong>'+(r[c]||'')+'</strong></td>':'<td>'+(c===IDX.statusVal||c===IDX.statusRef?pillStatus(r[c]):(r[c]||''))+'</td>';}).join('');
+    return '<tr>'+celdas+'<td><button class="btn btn-primary btn-sm" onclick="'+fnAbrir+'(\''+(r[IDX.noOrden])+'\')">Cargar</button></td></tr>';
+  }).join(''):'<tr><td colspan="'+(cols.length+1)+'" style="text-align:center;color:var(--gris-medio);padding:16px">Sin órdenes pendientes</td></tr>';
 }
 
 // ══════════════════════════════════════════════════
@@ -1091,12 +1091,12 @@ function renderBusquedaCampos(row){
       ${sec.fields.map(f=>{
         const val=getField(row,f.idx)||'';
         let input='';
-        if(f.type==='select'){const opts=(f.opts||[]).map(o=>`<option ${o===val?'selected':''} value="${o}">${o}</option>`).join('');input=`<select id="${f.id}"><option value="">Seleccionar...</option>${opts}</select>`;}
-        else if(f.type==='date'){let dval=val;if(val&&val.includes('/')){const p=val.split('/');if(p.length===3)dval=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}input=`<input type="date" id="${f.id}" value="${dval}">`;}
-        else if(f.type==='textarea'){input=`<textarea id="${f.id}">${val}</textarea>`;}
-        else{input=`<input type="${f.type}" id="${f.id}" value="${val}">`;}
+        if(f.type==='select'){const opts=(f.opts||[]).map(function(o){return '<option '+(o===val?'selected':'')+' value="'+o+'">'+o+'</option>';}).join('');input='<select id="'+f.id+'"><option value="">Seleccionar...</option>'+opts+'</select>';}
+        else if(f.type==='date'){let dval=val;if(val&&val.includes('/')){const p=val.split('/');if(p.length===3)dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}input='<input type="date" id="'+f.id+'" value="'+dval+'">';}
+        else if(f.type==='textarea'){input='<textarea id="'+f.id+'">'+val+'</textarea>';}
+        else{input='<input type="'+f.type+'" id="'+f.id+'" value="'+val+'">';}
         const full=f.type==='textarea'?' full':'';
-        return `<div class="form-group${full}"><label>${f.lbl}</label>${input}</div>`;
+        return '<div class="form-group'+full+'"><label>'+f.lbl+'</label>'+input+'</div>';
       }).join('')}
     </div>`).join('');
 }
