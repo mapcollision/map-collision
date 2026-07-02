@@ -786,17 +786,14 @@ function abrirModal(noOrden) {
     ]}
   ];
 
-  document.getElementById('modal-body').innerHTML = secciones.map(sec => `
-    <div class="modal-section">
-      <div class="modal-section-title" style="background:${sec.color}">${sec.titulo}</div>
-      <div class="modal-grid">
-        ${sec.campos.map(([lbl,val]) => `
-          <div class="modal-field">
-            <span class="mf-label">${lbl}</span>
-            <span class="mf-value">${val||'—'}</span>
-          </div>`).join('')}
-      </div>
-    </div>`).join('');
+  var modalHtml = secciones.map(function(sec) {
+    var fieldsHtml = sec.campos.map(function(campo) {
+      var lbl = campo[0], val = campo[1];
+      return '<div class="modal-field"><span class="mf-label">'+lbl+'</span><span class="mf-value">'+(val||'—')+'</span></div>';
+    }).join('');
+    return '<div class="modal-section"><div class="modal-section-title" style="background:'+sec.color+'">'+sec.titulo+'</div><div class="modal-grid">'+fieldsHtml+'</div></div>';
+  }).join('');
+  document.getElementById('modal-body').innerHTML = modalHtml;
 
   document.getElementById('modal-overlay').classList.add('open');
 }
