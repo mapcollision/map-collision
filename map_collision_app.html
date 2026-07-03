@@ -126,10 +126,14 @@ textarea{resize:vertical;min-height:70px}
 ═══════════════════════════════ */
 .dashboard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .dashboard-header h2{font-size:20px;font-weight:700;color:var(--azul);display:flex;align-items:center;gap:8px}
-.trello-board{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;min-height:calc(100vh - 200px)}
-.trello-col{flex-shrink:0;width:220px;display:flex;flex-direction:column;gap:0}
-.trello-col-header{border-radius:var(--radius) var(--radius) 0 0;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
-.trello-col-header h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--blanco)}
+.trello-board{display:flex;gap:16px;overflow-x:auto;padding-bottom:20px;min-height:calc(100vh - 200px);scrollbar-width:thin;scrollbar-color:var(--naranja) var(--gris-borde)}
+.trello-board::-webkit-scrollbar{height:10px}
+.trello-board::-webkit-scrollbar-track{background:var(--gris-borde);border-radius:5px}
+.trello-board::-webkit-scrollbar-thumb{background:var(--naranja);border-radius:5px}
+.trello-board::-webkit-scrollbar-thumb:hover{background:var(--naranja-dark)}
+.trello-col{flex-shrink:0;width:154px;display:flex;flex-direction:column;gap:0}
+.trello-col-header{border-radius:var(--radius) var(--radius) 0 0;padding:8px 10px;display:flex;align-items:center;justify-content:space-between}
+.trello-col-header h3{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--blanco)}
 .trello-col-header .col-count{background:rgba(255,255,255,.25);color:var(--blanco);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
 .trello-col-body{background:rgba(0,0,0,.04);border-radius:0 0 var(--radius) var(--radius);padding:10px;display:flex;flex-direction:column;gap:10px;min-height:200px;border:1px solid var(--gris-borde);border-top:none}
 
@@ -138,17 +142,17 @@ textarea{resize:vertical;min-height:70px}
 .car-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
 .car-card.retraso{border-top-color:var(--rojo)}
 .car-card.en-tiempo{border-top-color:var(--verde)}
-.car-icon{padding:12px 14px 6px;display:flex;justify-content:center}
+.car-icon{padding:8px 10px 4px;display:flex;justify-content:center}
 .car-icon svg{width:64px;height:40px}
-.car-info{padding:4px 14px 12px}
-.car-orden{font-size:13px;font-weight:700;color:var(--azul)}
-.car-unidad{font-size:11px;color:var(--gris-medio);margin-top:2px}
-.car-fecha{font-size:10px;font-weight:600;margin-top:6px;padding:3px 8px;border-radius:20px;display:inline-block}
+.car-info{padding:3px 10px 8px}
+.car-orden{font-size:10px;font-weight:700;color:var(--azul)}
+.car-unidad{font-size:9px;color:var(--gris-medio);margin-top:1px}
+.car-fecha{font-size:8px;font-weight:600;margin-top:4px;padding:2px 6px;border-radius:20px;display:inline-block}
 .car-fecha.ok{background:#F0FFF4;color:var(--verde)}
 .car-fecha.late{background:#FFF5F5;color:var(--rojo)}
 .car-fecha.neutral{background:var(--azul-claro);color:var(--azul-medio)}
-.car-avance{padding:0 14px 10px;display:flex;gap:3px}
-.avance-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.car-avance{padding:0 10px 7px;display:flex;gap:2px}
+.avance-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
 /* MODAL DETALLE */
 #modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
@@ -274,7 +278,7 @@ textarea{resize:vertical;min-height:70px}
 
       <!-- RESUMEN -->
       <div id="page-resumen" class="page active">
-        <div class="page-header"><h2>Resumen General</h2><button class="btn btn-primary btn-sm" onclick="cargarDashboard()">↻ Actualizar</button></div>
+        <div class="page-header"><h2>Resumen General</h2><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="cargarDashboard()">↻ Actualizar</button><button class="btn btn-secondary btn-sm" onclick="recalcularBD()" id="btn-recalc">⚙ Recalcular BD</button></div></div>
         <div class="stats-row">
           <div class="stat-card"><div class="stat-label">Total Órdenes</div><div class="stat-value" id="stat-total">—</div></div>
           <div class="stat-card blue"><div class="stat-label">En Valuación</div><div class="stat-value" id="stat-val">—</div></div>
@@ -723,7 +727,7 @@ function colorAuto(colorStr) {
 }
 
 function svgAuto(bodyColor) {
-  return '<svg viewBox="0 0 80 46" fill="none" xmlns="http://www.w3.org/2000/svg">'
+  return '<svg viewBox="0 0 80 46" width="56" height="35" fill="none" xmlns="http://www.w3.org/2000/svg">'
     + '<ellipse cx="40" cy="43" rx="32" ry="3" fill="rgba(0,0,0,.12)"/>'
     + '<rect x="6" y="26" width="68" height="14" rx="4" fill="' + bodyColor + '" stroke="#CBD5E0" stroke-width="1"/>'
     + '<path d="M20 26 L26 10 Q28 8 32 8 L48 8 Q52 8 54 10 L60 26Z" fill="' + bodyColor + '" stroke="#CBD5E0" stroke-width="1"/>'
@@ -816,9 +820,10 @@ async function cargarDashboard() {
     const sr=String(r[IDX.statusRef]||'').toLowerCase();
     return sv==='autorizada'&&!listoTaller.includes(sr);
   }).length;
+  // En Taller = misma lógica que Dashboard (taller-hojalateria + taller-pintura)
   const enTall = dbData.filter(r=>{
-    const sr=String(r[IDX.statusRef]||'').toLowerCase();
-    return listoTaller.includes(sr)&&!r[IDX.inicioRep];
+    const col = clasificarOrden(r);
+    return col === 'taller-hojalateria' || col === 'taller-pintura';
   }).length;
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-val').textContent   = enVal;
@@ -1087,7 +1092,30 @@ function renderBusquedaCampos(row){
         const val=getField(row,f.idx)||'';
         let input='';
         if(f.type==='select'){const opts=(f.opts||[]).map(function(o){return '<option '+(o===val?'selected':'')+' value="'+o+'">'+o+'</option>';}).join('');input='<select id="'+f.id+'"><option value="">Seleccionar...</option>'+opts+'</select>';}
-        else if(f.type==='date'){let dval=val;if(val&&val.includes('/')){const p=val.split('/');if(p.length===3)dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}input='<input type="date" id="'+f.id+'" value="'+dval+'">';}
+        else if(f.type==='date'){
+          var dval='';
+          if(val){
+            var s=String(val).trim();
+            if(s.includes('/')){
+              var p=s.split('/');
+              if(p.length===3){
+                // Detectar si es DD/MM/YYYY o MM/DD/YYYY
+                // Si el primer numero > 12, es DD
+                var n0=parseInt(p[0]),n1=parseInt(p[1]),n2=parseInt(p[2]);
+                if(n0>12){ // DD/MM/YYYY
+                  dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+                } else if(n1>12){ // MM/DD/YYYY
+                  dval=p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
+                } else { // Asumir DD/MM/YYYY (formato MX)
+                  dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+                }
+              }
+            } else if(s.includes('-')&&s.length===10){
+              dval=s; // Ya en formato yyyy-mm-dd
+            }
+          }
+          input='<input type="date" id="'+f.id+'" value="'+dval+'">';
+        }
         else if(f.type==='textarea'){input='<textarea id="'+f.id+'">'+val+'</textarea>';}
         else{input='<input type="'+f.type+'" id="'+f.id+'" value="'+val+'">';}
         const full=f.type==='textarea'?' full':'';
@@ -1108,10 +1136,27 @@ async function actualizarOrden(){
   row[IDX.moHojalatero]=bv('b-mohoj');row[IDX.moMecanica]=bv('b-momec');row[IDX.moPintura]=bv('b-mopint');
   row[IDX.materiales]=bv('b-mat');row[IDX.refaccionesV]=bv('b-refv');row[IDX.noPiezas]=bv('b-piezas');
   row[IDX.costoMeta]=bv('b-costo');
-  const np=parseInt(bv('b-piezas'))||0;
-  const clasif=np===0?'Express':np<=3?'Leve':np<=10?'Medio':np<=20?'Fuerte':'Severo';
-  row[IDX.clasificacion]=clasif;
-  const fvf=bv('b-valfin');if(fvf&&clasif){const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;const d=new Date(fvf+'T12:00:00');d.setDate(d.getDate()+dias);row[IDX.fechaEntregaCalc]=d.toLocaleDateString('es-MX');}
+  const npStr=bv('b-piezas');
+  if(npStr!==''){
+    const np=parseInt(npStr)||0;
+    const clasif=np===0?'Express':np<=3?'Leve':np<=10?'Medio':np<=20?'Fuerte':'Severo';
+    row[IDX.clasificacion]=clasif;
+    row[IDX.subtotal]=(parseFloat(bv('b-mohoj'))||0)+(parseFloat(bv('b-momec'))||0)+(parseFloat(bv('b-mopint'))||0)+(parseFloat(bv('b-mat'))||0)+(parseFloat(bv('b-refv'))||0);
+    const fvf=bv('b-valfin');
+    if(fvf){
+      const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;
+      const d=new Date(fvf+'T12:00:00');
+      d.setDate(d.getDate()+dias);
+      row[IDX.fechaEntregaCalc]=d.toLocaleDateString('es-MX');
+    }
+    // Recalcular Total Piezas
+    const pzS=parseInt(bv('b-pzsurt'))||0;
+    const pzV=parseInt(bv('b-pzsalv'))||0;
+    if(pzS>0||pzV>0){
+      const suma=pzS+pzV;
+      row[IDX.totalPiezas]=suma===np?'Completo':suma<np?'Faltan '+(np-suma)+' pz.':'Excede por '+(suma-np)+' pz.';
+    }
+  }
   row[IDX.fechaIniRef]=bv('b-refini');row[IDX.fechaFinRef]=bv('b-reffin');row[IDX.pedidoImpart]=bv('b-inpart');
   row[IDX.tot]=bv('b-tot');row[IDX.comentarioRef]=bv('b-comref');row[IDX.statusRef]=bv('b-statusref');
   row[IDX.pzSurtidas]=bv('b-pzsurt');row[IDX.pzSalvadas]=bv('b-pzsalv');row[IDX.comentarioPzSalvamento]=bv('b-compz');
@@ -1131,6 +1176,91 @@ function abrirOrdenBusqueda(no){showPage('busqueda');document.getElementById('bu
 // ══════════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+//  RECALCULAR BD — actualiza clasificacion, subtotal y fecha entrega
+// ══════════════════════════════════════════════════
+async function recalcularBD() {
+  var btn = document.getElementById('btn-recalc');
+  btn.textContent = '⏳ Procesando...';
+  btn.disabled = true;
+  await cargarBD();
+  var updates = 0;
+  var allData = await apiGet("'"+DB_SHEET+"'!A:BF");
+  var headers = allData[0];
+  var rows = allData.slice(1);
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    while (row.length < 57) row.push('');
+    if (!row[IDX.noOrden]) continue;
+
+    var changed = false;
+
+    // Recalcular Subtotal
+    var hoj  = parseFloat(row[IDX.moHojalatero])||0;
+    var mec  = parseFloat(row[IDX.moMecanica])||0;
+    var pint = parseFloat(row[IDX.moPintura])||0;
+    var mat  = parseFloat(row[IDX.materiales])||0;
+    var ref  = parseFloat(row[IDX.refaccionesV])||0;
+    var subtotal = hoj + mec + pint + mat + ref;
+    if (subtotal > 0 && String(row[IDX.subtotal]) !== String(subtotal)) {
+      row[IDX.subtotal] = subtotal;
+      changed = true;
+    }
+
+    // Recalcular Clasificacion
+    var np = parseInt(row[IDX.noPiezas]);
+    if (!isNaN(np)) {
+      var clasif = np===0?'Express':np<=3?'Leve':np<=10?'Medio':np<=20?'Fuerte':'Severo';
+      if (row[IDX.clasificacion] !== clasif) {
+        row[IDX.clasificacion] = clasif;
+        changed = true;
+      }
+      // Recalcular Fecha Entrega Calc
+      var fvf = row[IDX.fechaValFinal];
+      if (fvf) {
+        var dias = {Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;
+        var partes = String(fvf).split('/');
+        var d;
+        if (partes.length===3) d = new Date(partes[2],partes[1]-1,partes[0]);
+        else d = new Date(fvf);
+        if (!isNaN(d.getTime())) {
+          d.setDate(d.getDate()+dias);
+          var fechaCalc = d.toLocaleDateString('es-MX');
+          if (row[IDX.fechaEntregaCalc] !== fechaCalc) {
+            row[IDX.fechaEntregaCalc] = fechaCalc;
+            changed = true;
+          }
+        }
+      }
+      // Recalcular Total Piezas
+      var pzS = parseInt(row[IDX.pzSurtidas])||0;
+      var pzV = parseInt(row[IDX.pzSalvadas])||0;
+      if (pzS > 0 || pzV > 0) {
+        var suma = pzS + pzV;
+        var totalPz = suma===np?'Completo':suma<np?'Faltan '+(np-suma)+' pz.':'Excede por '+(suma-np)+' pz.';
+        if (row[IDX.totalPiezas] !== totalPz) {
+          row[IDX.totalPiezas] = totalPz;
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      var rowNum = i + 2; // +1 por header, +1 por base 1
+      try {
+        await apiUpdate("'"+DB_SHEET+"'!A"+rowNum+":BF"+rowNum, [row]);
+        updates++;
+      } catch(e) { console.error('Error fila '+rowNum, e); }
+    }
+  }
+
+  await cargarBD();
+  btn.textContent = '⚙ Recalcular BD';
+  btn.disabled = false;
+  toast(updates + ' registros actualizados ✓', 'success');
+}
+
 function exportarExcel(){window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&gid=0`,'_blank');toast('Descargando Excel...','success');}
 function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function setVal(id,idx){const el=document.getElementById(id);if(el&&ordenActual)el.value=getField(ordenActual,idx)||'';}
