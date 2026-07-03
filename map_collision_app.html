@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MAP COLLISION CENTER</title>
 <script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --naranja:#E8640A; --naranja-dark:#B84E08; --naranja-light:#FDE8D8;
@@ -1294,22 +1295,26 @@ async function recalcularBD() {
 
 async function exportarExcel(){
   try {
-    // Obtener el sheetId de la hoja Base de Datos
-    const metaUrl = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'?fields=sheets.properties';
-    const metaR = await fetch(metaUrl, {headers:{Authorization:'Bearer '+accessToken}});
-    const metaD = await metaR.json();
-    var gid = 0;
-    if (metaD.sheets) {
-      var dbSheet = metaD.sheets.find(function(s){
-        return s.properties.title === DB_SHEET;
-      });
-      if (dbSheet) gid = dbSheet.properties.sheetId;
-    }
-    // single=true exporta SOLO esa hoja, no todas
-    var exportUrl = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID
-      +'/export?format=xlsx&gid='+gid+'&single=true';
-    window.open(exportUrl, '_blank');
-    toast('Descargando Base de Datos en Excel...','success');
+    toast('Preparando descarga...', '');
+    // Leer datos de BD via API
+    var rows = await apiGet("'"+DB_SHEET+"'!A:BF");
+    if (!rows || rows.length === 0) { toast('Sin datos para exportar','error'); return; }
+    // Crear Excel con SheetJS
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    // Estilo de encabezado (ancho de columnas)
+    var cols = rows[0].map(function(h){ return {wch: Math.max(String(h||'').length+2, 12)}; });
+    ws['!cols'] = cols;
+    XLSX.utils.book_append_sheet(wb, ws, 'Base de Datos');
+    // Descargar
+    var fecha = new Date();
+    var nombreArchivo = 'MAP_COLLISION_BD_'
+      +fecha.getFullYear()
+      +(String(fecha.getMonth()+1).padStart(2,'0'))
+      +(String(fecha.getDate()).padStart(2,'0'))
+      +'.xlsx';
+    XLSX.writeFile(wb, nombreArchivo);
+    toast('Descarga lista: '+nombreArchivo, 'success');
   } catch(e) {
     toast('Error al exportar: '+e.message, 'error');
   }
