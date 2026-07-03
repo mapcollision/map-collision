@@ -354,16 +354,16 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Complemento</label><select id="val-complemento"><option value="">Seleccionar...</option><option>Si</option><option>No</option></select></div>
               <div class="form-group"><label>Fecha Presupuesto</label><input type="date" id="val-presup"></div>
               <div class="form-group"><label>Fecha Val. Final</label><input type="date" id="val-fecha-final" oninput="calcValuacion()"></div>
-              <div class="form-group"><label>Monto Previo</label><input type="number" id="val-monto"></div>
-              <div class="form-group"><label>M.O. Hojalatero</label><input type="number" id="val-hoj" oninput="calcValuacion()"></div>
-              <div class="form-group"><label>M.O. Mecánica</label><input type="number" id="val-mec" oninput="calcValuacion()"></div>
-              <div class="form-group"><label>M.O. Pintura</label><input type="number" id="val-pint" oninput="calcValuacion()"></div>
-              <div class="form-group"><label>Materiales</label><input type="number" id="val-mat" oninput="calcValuacion()"></div>
-              <div class="form-group"><label>Refacciones</label><input type="number" id="val-ref" oninput="calcValuacion()"></div>
+              <div class="form-group"><label>Monto Previo</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-monto" style="border:none;border-radius:0;flex:1"></div>
+              <div class="form-group"><label>M.O. Hojalatero</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-hoj" style="border:none;border-radius:0;flex:1" oninput="calcValuacion()"></div>
+              <div class="form-group"><label>M.O. Mecánica</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-mec" style="border:none;border-radius:0;flex:1" oninput="calcValuacion()"></div>
+              <div class="form-group"><label>M.O. Pintura</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-pint" style="border:none;border-radius:0;flex:1" oninput="calcValuacion()"></div>
+              <div class="form-group"><label>Materiales</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-mat" style="border:none;border-radius:0;flex:1" oninput="calcValuacion()"></div>
+              <div class="form-group"><label>Refacciones</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-ref" style="border:none;border-radius:0;flex:1" oninput="calcValuacion()"></div>
               <div class="form-group"><label>Subtotal (auto)</label><input type="text" id="val-subtotal" class="auto" readonly></div>
               <div class="form-group"><label>No. Piezas</label><input type="number" id="val-piezas" oninput="calcValuacion()"></div>
               <div class="form-group"><label>Clasificación (auto)</label><input type="text" id="val-clasif" class="auto" readonly></div>
-              <div class="form-group"><label>Costo Meta</label><input type="number" id="val-costo"></div>
+              <div class="form-group"><label>Costo Meta</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-costo" style="border:none;border-radius:0;flex:1"></div>
               <div class="form-group full"><label>Fecha Entrega (auto)</label><input type="text" id="val-fecha-entrega" class="auto" readonly></div>
             </div>
             <div class="btn-group">
@@ -1141,22 +1141,22 @@ function renderBusquedaCampos(row){
       {lbl:'Valuación',id:'b-val',type:'select',idx:IDX.valuacion,opts:['GNP','Particular']},
       {lbl:'Fecha Presup.',id:'b-presup',type:'date',idx:IDX.fechaPresup},
       {lbl:'Fecha Val. Final',id:'b-valfin',type:'date',idx:IDX.fechaValFinal},
-      {lbl:'Monto Previo',id:'b-monto',type:'number',idx:IDX.montoPrevio},
+      {lbl:'Monto Previo',id:'b-monto',type:'currency',idx:IDX.montoPrevio},
       {lbl:'Complemento',id:'b-compl',type:'select',idx:IDX.complemento,opts:['Si','No']},
-      {lbl:'MO Hojalatero',id:'b-mohoj',type:'number',idx:IDX.moHojalatero},
-      {lbl:'MO Mecánica',id:'b-momec',type:'number',idx:IDX.moMecanica},
-      {lbl:'MO Pintura',id:'b-mopint',type:'number',idx:IDX.moPintura},
-      {lbl:'Materiales',id:'b-mat',type:'number',idx:IDX.materiales},
-      {lbl:'Refacciones Val.',id:'b-refv',type:'number',idx:IDX.refaccionesV},
+      {lbl:'MO Hojalatero',id:'b-mohoj',type:'currency',idx:IDX.moHojalatero},
+      {lbl:'MO Mecánica',id:'b-momec',type:'currency',idx:IDX.moMecanica},
+      {lbl:'MO Pintura',id:'b-mopint',type:'currency',idx:IDX.moPintura},
+      {lbl:'Materiales',id:'b-mat',type:'currency',idx:IDX.materiales},
+      {lbl:'Refacciones Val.',id:'b-refv',type:'currency',idx:IDX.refaccionesV},
       {lbl:'No. Piezas',id:'b-piezas',type:'number',idx:IDX.noPiezas},
-      {lbl:'Costo Meta',id:'b-costo',type:'number',idx:IDX.costoMeta},
+      {lbl:'Costo Meta',id:'b-costo',type:'currency',idx:IDX.costoMeta},
     ]},
     {sec:'Refacciones',fields:[
       {lbl:'Fecha Ini Ref.',id:'b-refini',type:'date',idx:IDX.fechaIniRef},
       {lbl:'Fecha Fin Ref.',id:'b-reffin',type:'date',idx:IDX.fechaFinRef},
-      {lbl:'Pedido INPART',id:'b-inpart',type:'text',idx:IDX.pedidoImpart},
       {lbl:'TOT Refacciones',id:'b-tot',type:'text',idx:IDX.tot},
       {lbl:'Comentario Ref.',id:'b-comref',type:'textarea',idx:IDX.comentarioRef},
+      {lbl:'Pedido INPART',id:'b-inpart',type:'text',idx:IDX.pedidoImpart},
       {lbl:'Status Ref.',id:'b-statusref',type:'select',idx:IDX.statusRef,opts:['Pendiente Ref.','Unidad Completa','MO','Pend. Ref. Taller puede Avanzar']},
       {lbl:'Pz. Surtidas',id:'b-pzsurt',type:'number',idx:IDX.pzSurtidas},
       {lbl:'Pz. Salvadas',id:'b-pzsalv',type:'number',idx:IDX.pzSalvadas},
@@ -1199,15 +1199,23 @@ function renderBusquedaCampos(row){
         }
         else if(f.type==='date'){var dval='';if(val){var s=String(val).trim();if(s.includes('/')){var p=s.split('/');if(p.length===3){var n0=parseInt(p[0]),n1=parseInt(p[1]);if(n0>12){dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}else if(n1>12){dval=p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');}else{dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}}}else if(s.includes('-')&&s.length===10){dval=s;}}input='<input type="date" id="'+f.id+'" value="'+dval+'">';}
         else if(f.type==='textarea'){input='<textarea id="'+f.id+'">'+val+'</textarea>';}
+        else if(f.type==='currency'){
+          var cleaned = String(val||'').split('$').join('').split(',').join('').split(' ').join('');
+          var parsed = parseFloat(cleaned);
+          var displayVal = isNaN(parsed) ? '' : parsed;
+          input='<div style="display:flex;align-items:center;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden">'
+            +'<span style="padding:9px 10px;background:#F7F8FA;color:#718096;font-size:13px;border-right:1px solid #E2E8F0">$</span>'
+            +'<input type="number" id="'+f.id+'" value="'+displayVal+'" style="border:none;border-radius:0;flex:1;padding:9px 12px">'
+            +'</div>';
+        }
         else{
-          var displayVal = val;
+          var displayVal2 = val;
           if(f.type==='number' && val !== '') {
-            // Limpiar formato moneda: "$5,000.00" -> 5000
-            var cleaned = String(val).replace(/[$,\s]/g,'');
-            var parsed = parseFloat(cleaned);
-            displayVal = isNaN(parsed) ? '' : parsed;
+            var cleaned2 = String(val||'').split('$').join('').split(',').join('').split(' ').join('');
+            var parsed2 = parseFloat(cleaned2);
+            displayVal2 = isNaN(parsed2) ? '' : parsed2;
           }
-          input='<input type="'+f.type+'" id="'+f.id+'" value="'+displayVal+'">';
+          input='<input type="'+f.type+'" id="'+f.id+'" value="'+displayVal2+'">';
         }
         const full=f.type==='textarea'?' full':'';
         return '<div class="form-group'+full+'"><label>'+f.lbl+'</label>'+input+'</div>';
@@ -1255,8 +1263,8 @@ async function actualizarOrden(){
       row[IDX.totalPiezas]=suma===np?'Completo':suma<np?'Faltan '+(np-suma)+' pz.':'Excede por '+(suma-np)+' pz.';
     }
   }
-  row[IDX.fechaIniRef]=bv('b-refini');row[IDX.fechaFinRef]=bv('b-reffin');row[IDX.pedidoImpart]=bv('b-inpart');
-  row[IDX.tot]=bv('b-tot');row[IDX.comentarioRef]=bv('b-comref');row[IDX.statusRef]=bv('b-statusref');
+  row[IDX.fechaIniRef]=bv('b-refini');row[IDX.fechaFinRef]=bv('b-reffin');
+  row[IDX.pedidoImpart]=bv('b-inpart');row[IDX.tot]=bv('b-tot');row[IDX.comentarioRef]=bv('b-comref');row[IDX.statusRef]=bv('b-statusref');
   row[IDX.pzSurtidas]=bv('b-pzsurt');row[IDX.pzSalvadas]=bv('b-pzsalv');row[IDX.comentarioPzSalvamento]=bv('b-compz');
   row[IDX.ubicacionUnidad]=bv('b-ubic');row[IDX.inicioRep]=bv('b-inicio');
   row[IDX.tecHojalatero]=bv('b-techoj');row[IDX.prepPintura]=bv('b-prep');row[IDX.tecPintor]=bv('b-tecpint');
@@ -1401,4 +1409,3 @@ function toast(msg,type=''){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
-
