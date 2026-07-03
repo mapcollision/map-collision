@@ -1094,6 +1094,7 @@ function renderBusquedaCampos(row){
         return '<div class="form-group'+full+'"><label>'+f.lbl+'</label>'+input+'</div>';
       }).join('');
     return '<p class="subheader">'+sec.sec+'</p><div class="form-grid">'+fieldsHtml+'</div>';
+  }).join('');
 }
 async function actualizarOrden(){
   if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');
