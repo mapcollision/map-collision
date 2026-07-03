@@ -645,19 +645,18 @@ async function cargarTrello() {
   });
 
   const board = document.getElementById('trello-board');
-  board.innerHTML = columnas.map(col => `
-    <div class="trello-col">
-      <div class="trello-col-header" style="background:${col.color}">
-        <h3>${col.emoji} ${col.titulo}</h3>
-        <span class="col-count">${grupos[col.id].length}</span>
-      </div>
-      <div class="trello-col-body">
-        ${grupos[col.id].length === 0
-          ? '<div style="font-size:11px;color:var(--gris-medio);text-align:center;padding:20px 10px">Sin órdenes</div>'
-          : grupos[col.id].map(row => carCard(row, col.color)).join('')
-        }
-      </div>
-    </div>`).join('');
+  board.innerHTML = columnas.map(function(col) {
+    var body = grupos[col.id].length === 0
+      ? '<div style="font-size:11px;color:var(--gris-medio);text-align:center;padding:20px 10px">Sin ordenes</div>'
+      : grupos[col.id].map(function(row){ return carCard(row, col.color); }).join('');
+    return '<div class="trello-col">'
+      +'<div class="trello-col-header" style="background:'+col.color+'">'
+      +'<h3>'+col.emoji+' '+col.titulo+'</h3>'
+      +'<span class="col-count">'+grupos[col.id].length+'</span>'
+      +'</div>'
+      +'<div class="trello-col-body">'+body+'</div>'
+      +'</div>';
+  }).join('');
 }
 
 function carCard(row, accentColor) {
@@ -673,9 +672,9 @@ function carCard(row, accentColor) {
     const fe = partes.length===3 ? new Date(partes[2],partes[1]-1,partes[0]) : new Date(fechaStr);
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const diff = Math.round((fe-hoy)/86400000);
-    if (diff < 0) { fechaClass='late'; fechaLabel=`${Math.abs(diff)}d retraso`; }
+    if (diff < 0) { fechaClass='late'; fechaLabel=Math.abs(diff)+'d retraso'; }
     else if (diff === 0) { fechaClass='late'; fechaLabel='Hoy'; }
-    else { fechaClass='ok'; fechaLabel=`${diff}d restantes`; }
+    else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
   }
 
   // Puntos de avance taller
@@ -683,7 +682,7 @@ function carCard(row, accentColor) {
   const dots = pcts.map(i => {
     const val = String(getField(row,i)||'').trim();
     const dotColor = val==='100%'?'#276749':val==='N/A'?'#CBD5E0':val?'#E8640A':'#E2E8F0';
-    return `<div class="avance-dot" style="background:${dotColor}" title="${val||'—'}"></div>`;
+    return '<div class="avance-dot" style="background:'+dotColor+'" title="'+(val||'-')+'"></div>';
   }).join('');
 
   // Color del auto según CLASIFICACIÓN (no el color real del vehículo)
@@ -749,7 +748,7 @@ function abrirModal(noOrden) {
   if (idx < 0) return;
   const row = dbData[idx];
 
-  document.getElementById('modal-title').textContent = `Orden ${noOrden} — ${getField(row,IDX.tipoUnidad)||''} ${getField(row,IDX.color)||''}`;
+  document.getElementById('modal-title').textContent = 'Orden '+noOrden+' — '+(getField(row,IDX.tipoUnidad)||'')+' '+(getField(row,IDX.color)||'');
 
   const secciones = [
     { titulo:'Datos del Asesor', color:'#E8640A', campos:[
@@ -827,16 +826,17 @@ async function cargarDashboard() {
   document.getElementById('stat-tall').textContent  = enTall;
   const tbody = document.getElementById('dash-tbody');
   const rec = [...dbData].reverse().slice(0,10);
-  tbody.innerHTML = rec.length ? rec.map(r=>`
-    <tr onclick="abrirOrdenBusqueda('${r[0]}')" style="cursor:pointer">
-      <td><strong>${r[IDX.noOrden]||''}</strong></td>
-      <td>${r[IDX.asesor]||''}</td><td>${r[IDX.tipoUnidad]||''}</td>
-      <td>${r[IDX.placas]||''}</td>
-      <td>${pillStatus(r[IDX.statusVal])}</td>
-      <td>${pillStatus(r[IDX.statusRef])}</td>
-      <td>${r[IDX.fechaEntregaCalc]||''}</td>
-    </tr>`).join('') :
-    '<tr><td colspan="7" style="text-align:center;color:var(--gris-medio);padding:20px">Sin órdenes</td></tr>';
+  tbody.innerHTML = rec.length ? rec.map(function(r){
+    return '<tr onclick="abrirOrdenBusqueda(\''+(r[0])+'\''+')" style="cursor:pointer">'
+      +'<td><strong>'+(r[IDX.noOrden]||'')+'</strong></td>'
+      +'<td>'+(r[IDX.asesor]||'')+'</td><td>'+(r[IDX.tipoUnidad]||'')+'</td>'
+      +'<td>'+(r[IDX.placas]||'')+'</td>'
+      +'<td>'+pillStatus(r[IDX.statusVal])+'</td>'
+      +'<td>'+pillStatus(r[IDX.statusRef])+'</td>'
+      +'<td>'+(r[IDX.fechaEntregaCalc]||'')+'</td>'
+      +'</tr>';
+  }).join('') :
+  '<tr><td colspan="7" style="text-align:center;color:var(--gris-medio);padding:20px">Sin ordenes</td></tr>';
   actualizarTablasPendientes();
 }
 
@@ -848,7 +848,7 @@ function pillStatus(val) {
   else if(v.includes('pendiente')||v.includes('proceso'))cls='pill-orange';
   else if(v.includes('cancel')||v.includes('rechaz'))cls='pill-red';
   else if(v.includes('completa')||v.includes('express')||v.includes('mo')||v.includes('avanzar'))cls='pill-blue';
-  return `<span class="status-pill ${cls}">${val}</span>`;
+  return '<span class="status-pill '+cls+'">'+val+'</span>';
 }
 
 // ══════════════════════════════════════════════════
@@ -905,7 +905,7 @@ function abrirVal(noOrden) {
     ['Fecha Ingreso',IDX.fechaIngreso],['Tipo Cliente',IDX.tipoCliente],
     ['Tipo Unidad',IDX.tipoUnidad],['Color',IDX.color],['Placas',IDX.placas],
     ['No. Siniestro',IDX.noSiniestro],['Observaciones',IDX.observaciones]]
-    .map(([lbl,i])=>`<div class="readonly-field"><span>${lbl}</span><span>${getField(ordenActual,i)||'—'}</span></div>`).join('');
+    .map(function(c){return '<div class="readonly-field"><span>'+c[0]+'</span><span>'+(getField(ordenActual,c[1])||'—')+'</span></div>';}).join('');
   setVal('val-status',IDX.statusVal);setVal('val-tipo',IDX.valuacion);setVal('val-complemento',IDX.complemento);
   setDateInput('val-presup',IDX.fechaPresup);setDateInput('val-fecha-final',IDX.fechaValFinal);
   setVal('val-monto',IDX.montoPrevio);setVal('val-hoj',IDX.moHojalatero);setVal('val-mec',IDX.moMecanica);
@@ -957,7 +957,7 @@ function abrirRef(noOrden) {
   ro.innerHTML=[['No. Orden',IDX.noOrden],['Asesor',IDX.asesor],['Tipo Unidad',IDX.tipoUnidad],
     ['Clasificación',IDX.clasificacion],['Subtotal',IDX.subtotal],['Costo Meta',IDX.costoMeta],
     ['Status Val.',IDX.statusVal],['No. Piezas',IDX.noPiezas],['Fecha Entrega',IDX.fechaEntregaCalc]]
-    .map(([lbl,i])=>`<div class="readonly-field"><span>${lbl}</span><span>${getField(ordenActual,i)||'—'}</span></div>`).join('');
+    .map(function(c){return '<div class="readonly-field"><span>'+c[0]+'</span><span>'+(getField(ordenActual,c[1])||'—')+'</span></div>';}).join('');
   document.getElementById('ref-val-piezas').value=getField(ordenActual,IDX.noPiezas)||'';
   setDateInput('ref-fecha-ini',IDX.fechaIniRef);setDateInput('ref-fecha-fin',IDX.fechaFinRef);
   setVal('ref-inpart',IDX.pedidoImpart);setVal('ref-tot',IDX.tot);setVal('ref-comentario',IDX.comentarioRef);
@@ -982,7 +982,7 @@ function abrirTall(noOrden){
   ro.innerHTML=[['No. Orden',IDX.noOrden],['Asesor',IDX.asesor],['Tipo Unidad',IDX.tipoUnidad],
     ['Clasificación',IDX.clasificacion],['No. Piezas',IDX.noPiezas],['Status Ref.',IDX.statusRef],
     ['Subtotal',IDX.subtotal],['Costo Meta',IDX.costoMeta]]
-    .map(([lbl,i])=>`<div class="readonly-field"><span>${lbl}</span><span>${getField(ordenActual,i)||'—'}</span></div>`).join('');
+    .map(function(c){return '<div class="readonly-field"><span>'+c[0]+'</span><span>'+(getField(ordenActual,c[1])||'—')+'</span></div>';}).join('');
   const fechaCalc=getField(ordenActual,IDX.fechaEntregaCalc);
   document.getElementById('tall-fecha-calc').value=fechaCalc||'';
   if(fechaCalc){const hoy=new Date();hoy.setHours(0,0,0,0);const p=fechaCalc.split('/');const fe=p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(fechaCalc);const diff=Math.round((fe-hoy)/86400000);const rEl=document.getElementById('tall-retraso'),dEl=document.getElementById('tall-dias');if(diff<0){rEl.value='Con Retraso';rEl.className='auto-red';dEl.value='Excedido por '+Math.abs(diff)+' días';dEl.className='auto-red';}else{rEl.value='En tiempo';rEl.className='auto-green';dEl.value=diff+' días restantes';dEl.className='auto-green';}}
@@ -1082,10 +1082,8 @@ function renderBusquedaCampos(row){
     ]}
   ];
   const cont=document.getElementById('busq-campos');
-  cont.innerHTML=campos.map(sec=>`
-    <p class="subheader">${sec.sec}</p>
-    <div class="form-grid">
-      ${sec.fields.map(f=>{
+  cont.innerHTML=campos.map(function(sec){
+    var fieldsHtml = sec.fields.map(function(f){
         const val=getField(row,f.idx)||'';
         let input='';
         if(f.type==='select'){const opts=(f.opts||[]).map(function(o){return '<option '+(o===val?'selected':'')+' value="'+o+'">'+o+'</option>';}).join('');input='<select id="'+f.id+'"><option value="">Seleccionar...</option>'+opts+'</select>';}
@@ -1094,8 +1092,8 @@ function renderBusquedaCampos(row){
         else{input='<input type="'+f.type+'" id="'+f.id+'" value="'+val+'">';}
         const full=f.type==='textarea'?' full':'';
         return '<div class="form-group'+full+'"><label>'+f.lbl+'</label>'+input+'</div>';
-      }).join('')}
-    </div>`).join('');
+      }).join('');
+    return '<p class="subheader">'+sec.sec+'</p><div class="form-grid">'+fieldsHtml+'</div>';
 }
 async function actualizarOrden(){
   if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');
@@ -1135,8 +1133,8 @@ function abrirOrdenBusqueda(no){showPage('busqueda');document.getElementById('bu
 function exportarExcel(){window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&gid=0`,'_blank');toast('Descargando Excel...','success');}
 function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function setVal(id,idx){const el=document.getElementById(id);if(el&&ordenActual)el.value=getField(ordenActual,idx)||'';}
-function setDateInput(id,idx){const el=document.getElementById(id);if(!el||!ordenActual)return;const val=getField(ordenActual,idx)||'';if(val&&val.includes('/')){const p=val.split('/');if(p.length===3)el.value=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;}else el.value=val;}
-function limpiarForm(prefix){document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el=>{el.value='';});}
+function setDateInput(id,idx){var el=document.getElementById(id);if(!el||!ordenActual)return;var val=getField(ordenActual,idx)||'';if(val&&val.includes('/')){var p=val.split('/');if(p.length===3)el.value=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}else el.value=val;}
+function limpiarForm(prefix){document.querySelectorAll('[id^="'+prefix+'-"]').forEach(function(el){el.value='';});}
 function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
