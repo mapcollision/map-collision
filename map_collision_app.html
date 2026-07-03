@@ -602,7 +602,17 @@ function iniciarSesion() {
         } catch(e) { console.log('Info usuario:', e); }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        // Mostrar indicador de carga
+        document.getElementById('stat-total').textContent = '...';
+        document.getElementById('stat-val').textContent = '...';
+        document.getElementById('stat-ref').textContent = '...';
+        document.getElementById('stat-tall').textContent = '...';
         await cargarBD();
+        if (dbData.length === 0) {
+          // Segundo intento tras 2 segundos
+          await new Promise(function(r){setTimeout(r,2000);});
+          await cargarBD();
+        }
         cargarDashboard();
       }
     });
@@ -633,12 +643,22 @@ async function apiUpdate(range,values) {
 }
 
 async function cargarBD() {
-  try {
-    const rows = await apiGet(`'${DB_SHEET}'!A:BF`);
-    if (rows.length>1) {
-      dbData = rows.slice(1).map(row => { while(row.length<57) row.push(''); return row; });
+  var intentos=0;
+  while(intentos<3){
+    try{
+      var rows=await apiGet("'"+DB_SHEET+"'!A:BF");
+      if(rows&&rows.length>1){
+        dbData=rows.slice(1).map(function(row){while(row.length<57)row.push('');return row;});
+        return;
+      }
+      intentos++;
+      if(intentos<3)await new Promise(function(r){setTimeout(r,1500);});
+    }catch(e){
+      console.error('BD intento '+intentos+':',e);
+      intentos++;
+      if(intentos<3)await new Promise(function(r){setTimeout(r,1500);});
     }
-  } catch(e){console.error('BD:',e);}
+  }
 }
 function getField(row,idx){ if(!row||idx>=row.length) return ''; const v=row[idx]; return (v===undefined||v===null)?'':v; }
 function findRow(no){ return dbData.findIndex(r=>String(r[0]).trim()===String(no).trim()); }
