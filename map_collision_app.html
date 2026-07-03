@@ -140,8 +140,14 @@ textarea{resize:vertical;min-height:70px}
 /* TARJETA AUTO */
 .car-card{background:var(--blanco);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--gris-borde);cursor:pointer;transition:all .2s;overflow:hidden;border-top:3px solid var(--naranja)}
 .car-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
-.car-card.retraso{border-top-color:var(--rojo)}
-.car-card.en-tiempo{border-top-color:var(--verde)}
+.car-card.urgente{background:#FFF5F5;border:1px solid #FEB2B2;border-top:3px solid #C53030}
+.car-card.urgente:hover{background:#FED7D7}
+.car-card.advertencia{background:#FFFFF0;border:1px solid #F6E05E;border-top:3px solid #D69E2E}
+.car-card.advertencia:hover{background:#FEFCBF}
+.car-card.seguro{background:#F0FFF4;border:1px solid #9AE6B4;border-top:3px solid #276749}
+.car-card.seguro:hover{background:#C6F6D5}
+.car-card.transito-card{background:#F7FAFC;border:1px solid #CBD5E0;border-top:3px solid #A0AEC0}
+.car-card.transito-card:hover{background:#EDF2F7}
 .car-icon{padding:8px 10px 4px;display:flex;justify-content:center}
 .car-icon svg{width:64px;height:40px}
 .car-info{padding:3px 10px 8px}
@@ -713,15 +719,13 @@ function carCard(row, accentColor) {
 
   // Calcular retraso
   let fechaClass = 'neutral', fechaLabel = fechaStr || 'Sin fecha';
-  if (fechaStr) {
-    const fe = parseDate(fechaStr);
+  const fe = fechaStr ? parseDate(fechaStr) : null;
+  if (fe && !isNaN(fe.getTime())) {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
-    if (fe && !isNaN(fe.getTime())) {
-      const diff = Math.round((fe-hoy)/86400000);
-      if (diff < 0) { fechaClass='late'; fechaLabel=Math.abs(diff)+'d retraso'; }
-      else if (diff === 0) { fechaClass='late'; fechaLabel='Hoy'; }
-      else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
-    }
+    const diff = Math.round((fe-hoy)/86400000);
+    if (diff < 0) { fechaClass='late'; fechaLabel=Math.abs(diff)+'d retraso'; }
+    else if (diff === 0) { fechaClass='late'; fechaLabel='Hoy'; }
+    else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
   }
 
   // Puntos de avance taller
@@ -732,18 +736,27 @@ function carCard(row, accentColor) {
     return '<div class="avance-dot" style="background:'+dotColor+'" title="'+(val||'-')+'"></div>';
   }).join('');
 
-  // Color del auto según CLASIFICACIÓN (no el color real del vehículo)
-  const colCol    = clasificarOrden(row);
-  const clasif    = String(getField(row, IDX.clasificacion)||'').toLowerCase();
+  // Color del auto según COLOR REAL de la unidad en BD
+  const colCol = clasificarOrden(row);
   let carBody;
-  if (colCol === 'transito')   carBody = '#A0AEC0';        // gris
-  else if (colCol === 'entregado') carBody = '#2F855A';    // verde oscuro
-  else if (clasif === 'express' || clasif === 'leve') carBody = '#E53E3E'; // rojo
-  else if (clasif === 'medio')  carBody = '#D69E2E';       // amarillo
-  else if (clasif === 'fuerte' || clasif === 'severo') carBody = '#38A169'; // verde
-  else carBody = '#A0AEC0';                                // gris por defecto
+  if (colCol === 'transito')    carBody = '#A0AEC0';  // gris fijo para en tránsito
+  else if (colCol === 'entregado') carBody = '#2F855A'; // verde oscuro para entregado
+  else carBody = colorAuto(getField(row, IDX.color));  // color real del vehículo
 
-  const cardClass = (fechaClass==='late') ? 'car-card retraso' : (fechaClass==='ok') ? 'car-card en-tiempo' : 'car-card';
+  // Fondo tarjeta: gris si tránsito, rojo si <=3 días, amarillo si <=7, verde si más
+  let cardBg;
+  if (colCol === 'transito') {
+    cardBg = 'car-card transito-card';
+  } else if (fe && !isNaN(fe.getTime())) {
+    const hoyCard = new Date(); hoyCard.setHours(0,0,0,0);
+    const diffCard = Math.round((fe - hoyCard) / 86400000);
+    if (diffCard < 0 || diffCard <= 3) cardBg = 'car-card urgente';
+    else if (diffCard <= 7) cardBg = 'car-card advertencia';
+    else cardBg = 'car-card seguro';
+  } else {
+    cardBg = 'car-card';
+  }
+  const cardClass = cardBg;
   return '<div class="' + cardClass + '" onclick="abrirModal(\'' + no + '\')">'
     + '<div class="car-icon">' + svgAuto(carBody) + '</div>'
     + '<div class="car-info">'
@@ -1278,7 +1291,24 @@ async function recalcularBD() {
   toast(updates + ' registros actualizados ✓', 'success');
 }
 
-function exportarExcel(){window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx&gid=0`,'_blank');toast('Descargando Excel...','success');}
+async function exportarExcel(){
+  // Obtener el gid de la hoja Base de Datos
+  try {
+    const url = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'?fields=sheets.properties';
+    const r = await fetch(url, {headers:{Authorization:'Bearer '+accessToken}});
+    const d = await r.json();
+    var gid = 0;
+    if (d.sheets) {
+      var dbSheet = d.sheets.find(function(s){ return s.properties.title === DB_SHEET; });
+      if (dbSheet) gid = dbSheet.properties.sheetId;
+    }
+    window.open('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=xlsx&gid='+gid,'_blank');
+    toast('Descargando Base de Datos en Excel...','success');
+  } catch(e) {
+    window.open('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=xlsx','_blank');
+    toast('Descargando Excel...','success');
+  }
+}
 function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
 function setVal(id,idx){const el=document.getElementById(id);if(el&&ordenActual)el.value=getField(ordenActual,idx)||'';}
 function setDateInput(id,idx){var el=document.getElementById(id);if(!el||!ordenActual)return;var val=getField(ordenActual,idx)||'';if(val&&val.includes('/')){var p=val.split('/');if(p.length===3)el.value=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}else el.value=val;}
