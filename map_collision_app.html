@@ -517,29 +517,30 @@ function parseDate(str) {
   if (!str && str !== 0) return null;
   var s = String(str).trim();
   if (!s) return null;
-  // Número serial de Google Sheets (días desde 30/12/1899)
+
   var num = parseFloat(s);
   if (!isNaN(num) && !s.includes('/') && !s.includes('-') && num > 40000 && num < 60000) {
     var base = new Date(1899, 11, 30);
     base.setDate(base.getDate() + Math.floor(num));
     return base;
   }
-  // Formato YYYY-MM-DD
-  if (s.length === 10 && s.charAt(4) === '-') {
+  /* YYYY-MM-DD */
+  if (s.length === 10 && s.charAt(4) === '-' && s.charAt(7) === '-') {
     var p=s.split('-');
-    return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    var yy=parseInt(p[0]),mm=parseInt(p[1]),dd=parseInt(p[2]);
+    if (yy>1900 && mm>=1 && mm<=12 && dd>=1 && dd<=31) return new Date(yy,mm-1,dd);
   }
-  // Formato con /
+
   if (s.includes('/')) {
     var p=s.split('/');
     if (p.length===3) {
       var a=parseInt(p[0]), b=parseInt(p[1]), c=parseInt(p[2]);
       if (c > 31) {
-        if (a > 12) return new Date(c, b-1, a); // DD/MM/YYYY
-        if (b > 12) return new Date(c, a-1, b); // MM/DD/YYYY
-        return new Date(c, b-1, a); // Asumir DD/MM (México)
+        if (a > 12) return new Date(c, b-1, a);
+        if (b > 12) return new Date(c, a-1, b);
+        return new Date(c, b-1, a);
       }
-      if (a > 31) return new Date(a, b-1, c); // YYYY/MM/DD
+      if (a > 31) return new Date(a, b-1, c);
     }
   }
   return null;
