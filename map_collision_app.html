@@ -1109,9 +1109,15 @@ function cerrarFormTall(){document.getElementById('tall-form-card').style.displa
 //  BUSQUEDA
 // ══════════════════════════════════════════════════
 async function buscarOrden(){
-  const no=document.getElementById('busq-orden').value.trim();if(!no){toast('Ingresa un No. de Orden','error');return;}
-  await cargarBD();const idx=findRow(no);if(idx<0){toast('No se encontró la orden '+no,'error');return;}
-  ordenActual=dbData[idx];ordenActualFila=idx+2;renderBusquedaCampos(ordenActual);
+  const no=document.getElementById('busq-orden').value.trim();
+  if(!no){toast('Ingresa un No. de Orden','error');return;}
+  toast('Buscando...','');
+  await cargarBD();
+  const idx=findRow(no);
+  if(idx<0){toast('No se encontró la orden '+no,'error');return;}
+  ordenActual=dbData[idx];
+  ordenActualFila=idx+2;
+  renderBusquedaCampos(ordenActual);
   document.getElementById('busq-resultado').style.display='block';
   document.getElementById('busq-resultado').scrollIntoView({behavior:'smooth'});
 }
@@ -1195,7 +1201,12 @@ function renderBusquedaCampos(row){
         else if(f.type==='textarea'){input='<textarea id="'+f.id+'">'+val+'</textarea>';}
         else{
           var displayVal = val;
-          if(f.type==='number' && val) displayVal = parseFloat(val)||val;
+          if(f.type==='number' && val !== '') {
+            // Limpiar formato moneda: "$5,000.00" -> 5000
+            var cleaned = String(val).replace(/[$,\s]/g,'');
+            var parsed = parseFloat(cleaned);
+            displayVal = isNaN(parsed) ? '' : parsed;
+          }
           input='<input type="'+f.type+'" id="'+f.id+'" value="'+displayVal+'">';
         }
         const full=f.type==='textarea'?' full':'';
@@ -1205,7 +1216,14 @@ function renderBusquedaCampos(row){
   }).join('');
 }
 async function actualizarOrden(){
-  if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');
+  if(!ordenActual){toast('No hay orden cargada','error');return;}
+  // Verificar fila correcta buscando en BD actualizada
+  var no = ordenActual[IDX.noOrden];
+  await cargarBD();
+  var idxBD = findRow(no);
+  if(idxBD<0){toast('Orden '+no+' no encontrada en BD','error');return;}
+  ordenActualFila = idxBD + 2;
+  var row=[...dbData[idxBD]];while(row.length<57)row.push('');
   function bv(id){const el=document.getElementById(id);return el?el.value:'';}
   row[IDX.noOrden]=bv('b-noorden');row[IDX.asesor]=bv('b-asesor');row[IDX.valuador]=bv('b-valuador');
   row[IDX.fechaIngreso]=bv('b-fecha');row[IDX.deducible]=bv('b-deducible');row[IDX.tipoCliente]=bv('b-cliente');
