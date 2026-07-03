@@ -508,32 +508,44 @@ const DB_SHEET  = 'Base de Datos';
 
 // Parsea fecha de BD en cualquier formato a objeto Date
 function parseDate(str) {
-  if (!str) return null;
+  if (!str && str !== 0) return null;
   var s = String(str).trim();
   if (!s) return null;
+  // Número serial de Google Sheets (días desde 30/12/1899)
+  var num = parseFloat(s);
+  if (!isNaN(num) && !s.includes('/') && !s.includes('-') && num > 40000 && num < 60000) {
+    var base = new Date(1899, 11, 30);
+    base.setDate(base.getDate() + Math.floor(num));
+    return base;
+  }
   // Formato YYYY-MM-DD
-  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    var p=s.split('-'); return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  if (s.length === 10 && s.charAt(4) === '-') {
+    var p=s.split('-');
+    return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
   }
   // Formato con /
   if (s.includes('/')) {
     var p=s.split('/');
     if (p.length===3) {
-      var a=parseInt(p[0]),b=parseInt(p[1]),c=parseInt(p[2]);
-      // Si c > 31 es el año (DD/MM/YYYY o MM/DD/YYYY)
+      var a=parseInt(p[0]), b=parseInt(p[1]), c=parseInt(p[2]);
       if (c > 31) {
-        // a > 12 significa que a es el día -> DD/MM/YYYY
-        if (a > 12) return new Date(c, b-1, a);
-        // b > 12 significa que b es el día -> MM/DD/YYYY
-        if (b > 12) return new Date(c, a-1, b);
-        // Asumir DD/MM/YYYY (formato México)
-        return new Date(c, b-1, a);
+        if (a > 12) return new Date(c, b-1, a); // DD/MM/YYYY
+        if (b > 12) return new Date(c, a-1, b); // MM/DD/YYYY
+        return new Date(c, b-1, a); // Asumir DD/MM (México)
       }
-      // Si a > 31 es el año al inicio -> YYYY/MM/DD
-      if (a > 31) return new Date(a, b-1, c);
+      if (a > 31) return new Date(a, b-1, c); // YYYY/MM/DD
     }
   }
   return null;
+}
+
+// Formatea fecha a DD/MM/YYYY para guardar en BD
+function formatDateMX(d) {
+  if (!d || isNaN(d.getTime())) return '';
+  var dd = String(d.getDate()).padStart(2,'0');
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var yyyy = d.getFullYear();
+  return dd+'/'+mm+'/'+yyyy;
 }
 
 const IDX = {
@@ -961,7 +973,7 @@ function calcValuacion() {
   let clasif='';
   if(v('val-piezas')!==''){if(piezas===0)clasif='Express';else if(piezas<=3)clasif='Leve';else if(piezas<=10)clasif='Medio';else if(piezas<=20)clasif='Fuerte';else clasif='Severo';}
   document.getElementById('val-clasif').value=clasif;
-  if(fechaFinal&&clasif){const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;const fecha=new Date(fechaFinal+'T12:00:00');fecha.setDate(fecha.getDate()+dias);document.getElementById('val-fecha-entrega').value=fecha.toLocaleDateString('es-MX');}
+  if(fechaFinal&&clasif){const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;const fecha=new Date(fechaFinal+'T12:00:00');fecha.setDate(fecha.getDate()+dias);document.getElementById('val-fecha-entrega').value=formatDateMX(fecha);}
   else document.getElementById('val-fecha-entrega').value='';
 }
 
@@ -971,7 +983,7 @@ async function guardarValuacion() {
   const clasif=document.getElementById('val-clasif').value;
   const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;
   let fechaCalc='';const ff=v('val-fecha-final');
-  if(ff&&clasif){const d=new Date(ff+'T12:00:00');d.setDate(d.getDate()+dias);fechaCalc=d.toLocaleDateString('es-MX');}
+  if(ff&&clasif){const d=new Date(ff+'T12:00:00');d.setDate(d.getDate()+dias);fechaCalc=formatDateMX(d);}
   const hoj=parseFloat(v('val-hoj'))||0,mec=parseFloat(v('val-mec'))||0,pint=parseFloat(v('val-pint'))||0,mat=parseFloat(v('val-mat'))||0,ref=parseFloat(v('val-ref'))||0;
   row[IDX.statusVal]=v('val-status');row[IDX.valuacion]=v('val-tipo');row[IDX.fechaPresup]=v('val-presup');
   row[IDX.fechaValFinal]=ff;row[IDX.montoPrevio]=v('val-monto');row[IDX.complemento]=v('val-complemento');
@@ -1155,7 +1167,7 @@ async function actualizarOrden(){
       const dias={Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;
       const d=new Date(fvf+'T12:00:00');
       d.setDate(d.getDate()+dias);
-      row[IDX.fechaEntregaCalc]=d.toLocaleDateString('es-MX');
+      row[IDX.fechaEntregaCalc]=formatDateMX(d);
     }
     // Recalcular Total Piezas
     const pzS=parseInt(bv('b-pzsurt'))||0;
@@ -1231,7 +1243,7 @@ async function recalcularBD() {
         var d = parseDate(String(fvf));
         if (d && !isNaN(d.getTime())) {
           d.setDate(d.getDate()+dias);
-          var fechaCalc = d.toLocaleDateString('es-MX');
+          var fechaCalc = formatDateMX(d);
           if (row[IDX.fechaEntregaCalc] !== fechaCalc) {
             row[IDX.fechaEntregaCalc] = fechaCalc;
             changed = true;
