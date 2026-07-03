@@ -627,17 +627,17 @@ function iniciarSesion() {
 //  API
 // ══════════════════════════════════════════════════
 async function apiGet(range) {
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}`,
+  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range),
     {headers:{Authorization:'Bearer '+accessToken}});
   return (await r.json()).values||[];
 }
 async function apiAppend(range,values) {
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
     {method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
   return r.json();
 }
 async function apiUpdate(range,values) {
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
+  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',
     {method:'PUT',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
   return r.json();
 }
@@ -973,7 +973,7 @@ async function guardarAsesor() {
   row[IDX.color]=v('as-color');row[IDX.placas]=v('as-placas');
   row[IDX.fechaReingreso]=v('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
   row[IDX.noSiniestro]=v('as-siniestro');
-  try{await apiAppend(`'${DB_SHEET}'!A:BF`,[row]);toast('Orden '+no+' guardada ✓','success');limpiarForm('as');await cargarBD();actualizarTablasPendientes();}
+  try{await apiAppend('"'+DB_SHEET+'"!A:BF',[row]);toast('Orden '+no+' guardada ✓','success');limpiarForm('as');await cargarBD();actualizarTablasPendientes();}
   catch(e){toast('Error: '+e.message,'error');}
 }
 
@@ -1025,7 +1025,7 @@ async function guardarValuacion() {
   row[IDX.moHojalatero]=v('val-hoj');row[IDX.moMecanica]=v('val-mec');row[IDX.moPintura]=v('val-pint');
   row[IDX.materiales]=v('val-mat');row[IDX.refaccionesV]=v('val-ref');row[IDX.subtotal]=hoj+mec+pint+mat+ref;
   row[IDX.noPiezas]=v('val-piezas');row[IDX.clasificacion]=clasif;row[IDX.costoMeta]=v('val-costo');row[IDX.fechaEntregaCalc]=fechaCalc;
-  try{await apiUpdate(`'${DB_SHEET}'!A${ordenActualFila}:BF${ordenActualFila}`,[row]);toast('Valuación guardada ✓','success');cerrarFormVal();await cargarBD();actualizarTablasPendientes();}
+  try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Valuación guardada ✓','success');cerrarFormVal();await cargarBD();actualizarTablasPendientes();}
   catch(e){toast('Error: '+e.message,'error');}
 }
 function cerrarFormVal(){document.getElementById('val-form-card').style.display='none';ordenActual=null;['val-status','val-tipo','val-complemento','val-presup','val-fecha-final','val-monto','val-hoj','val-mec','val-pint','val-mat','val-ref','val-subtotal','val-piezas','val-clasif','val-costo','val-fecha-entrega'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
@@ -1052,7 +1052,7 @@ function abrirRef(noOrden) {
 }
 function calcRefacciones(){const surt=parseInt(v('ref-pz-surt'))||0,salv=parseInt(v('ref-pz-salv'))||0,total=parseInt(v('ref-val-piezas'))||0,suma=surt+salv;let r='';if(v('ref-pz-surt')!==''||v('ref-pz-salv')!==''){if(suma===total)r='Completo';else if(suma<total)r='Faltan '+(total-suma)+' pz.';else r='Excede por '+(suma-total)+' pz.';}document.getElementById('ref-total-pz').value=r;}
 async function guardarRefacciones(){if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.fechaFinRef]=v('ref-fecha-fin');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
-try{await apiUpdate(`'${DB_SHEET}'!A${ordenActualFila}:BF${ordenActualFila}`,[row]);toast('Refacciones guardadas ✓','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}}
+try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Refacciones guardadas ✓','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormRef(){document.getElementById('ref-form-card').style.display='none';ordenActual=null;}
 
 // ══════════════════════════════════════════════════
@@ -1088,7 +1088,7 @@ row[IDX.pHojalateria]=v('tall-p-hoj');row[IDX.pMecanica]=v('tall-p-mec');row[IDX
 row[IDX.pPintura]=v('tall-p-pint');row[IDX.pArmado]=v('tall-p-arm');row[IDX.pPulido]=v('tall-p-pul');
 row[IDX.pTot]=v('tall-p-tot');row[IDX.trabajoTerminado]=v('tall-terminado');
 row[IDX.statusTaller]=v('tall-status');row[IDX.fechaEntrega]=v('tall-fecha-entrega');
-try{await apiUpdate(`'${DB_SHEET}'!A${ordenActualFila}:BF${ordenActualFila}`,[row]);toast('Taller guardado ✓','success');cerrarFormTall();await cargarBD();actualizarTablasPendientes();}
+try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Taller guardado ✓','success');cerrarFormTall();await cargarBD();actualizarTablasPendientes();}
 catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormTall(){document.getElementById('tall-form-card').style.display='none';ordenActual=null;}
 
@@ -1222,7 +1222,7 @@ async function actualizarOrden(){
   row[IDX.pPintura]=bv('b-ppint');row[IDX.pArmado]=bv('b-parm');row[IDX.pPulido]=bv('b-ppul');
   row[IDX.pTot]=bv('b-ptot');row[IDX.trabajoTerminado]=bv('b-tterm');
   row[IDX.statusTaller]=bv('b-stall');row[IDX.fechaEntrega]=bv('b-fentrega');
-  try{await apiUpdate(`'${DB_SHEET}'!A${ordenActualFila}:BF${ordenActualFila}`,[row]);toast('Orden actualizada ✓','success');limpiarBusqueda();await cargarBD();actualizarTablasPendientes();}
+  try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Orden actualizada ✓','success');limpiarBusqueda();await cargarBD();actualizarTablasPendientes();}
   catch(e){toast('Error: '+e.message,'error');}
 }
 function limpiarBusqueda(){document.getElementById('busq-orden').value='';document.getElementById('busq-resultado').style.display='none';document.getElementById('busq-campos').innerHTML='';ordenActual=null;}
