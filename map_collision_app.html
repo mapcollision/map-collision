@@ -1092,30 +1092,7 @@ function renderBusquedaCampos(row){
         const val=getField(row,f.idx)||'';
         let input='';
         if(f.type==='select'){const opts=(f.opts||[]).map(function(o){return '<option '+(o===val?'selected':'')+' value="'+o+'">'+o+'</option>';}).join('');input='<select id="'+f.id+'"><option value="">Seleccionar...</option>'+opts+'</select>';}
-        else if(f.type==='date'){
-          var dval='';
-          if(val){
-            var s=String(val).trim();
-            if(s.includes('/')){
-              var p=s.split('/');
-              if(p.length===3){
-                // Detectar si es DD/MM/YYYY o MM/DD/YYYY
-                // Si el primer numero > 12, es DD
-                var n0=parseInt(p[0]),n1=parseInt(p[1]),n2=parseInt(p[2]);
-                if(n0>12){ // DD/MM/YYYY
-                  dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
-                } else if(n1>12){ // MM/DD/YYYY
-                  dval=p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
-                } else { // Asumir DD/MM/YYYY (formato MX)
-                  dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
-                }
-              }
-            } else if(s.includes('-')&&s.length===10){
-              dval=s; // Ya en formato yyyy-mm-dd
-            }
-          }
-          input='<input type="date" id="'+f.id+'" value="'+dval+'">';
-        }
+        else if(f.type==='date'){var dval='';if(val){var s=String(val).trim();if(s.includes('/')){var p=s.split('/');if(p.length===3){var n0=parseInt(p[0]),n1=parseInt(p[1]);if(n0>12){dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}else if(n1>12){dval=p[2]+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');}else{dval=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}}}else if(s.includes('-')&&s.length===10){dval=s;}}input='<input type="date" id="'+f.id+'" value="'+dval+'">';}
         else if(f.type==='textarea'){input='<textarea id="'+f.id+'">'+val+'</textarea>';}
         else{input='<input type="'+f.type+'" id="'+f.id+'" value="'+val+'">';}
         const full=f.type==='textarea'?' full':'';
