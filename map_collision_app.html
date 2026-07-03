@@ -621,10 +621,9 @@ function iniciarSesion() {
         } catch(e) { console.log('Info usuario:', e); }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        // Renovar token cada 45 minutos automáticamente
+        // Renovar token cada 45 minutos silenciosamente
         setInterval(function() {
-          console.log('Renovando token automáticamente...');
-          tokenClient.requestAccessToken({prompt:''});
+          renovarToken();
         }, 45 * 60 * 1000);
         // Mostrar indicador de carga
         document.getElementById('stat-total').textContent = '...';
@@ -663,10 +662,26 @@ async function apiAppend(range,values) {
   });
 }
 async function renovarToken() {
-  return new Promise(function(resolve) {
-    tokenClient.requestAccessToken({prompt:''});
-    // El callback del tokenClient actualizara accessToken
-    setTimeout(resolve, 2000);
+  return new Promise(function(resolve, reject) {
+    try {
+      // Crear cliente temporal con callback para capturar el nuevo token
+      var tempClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        prompt: '',
+        callback: function(resp) {
+          if (resp && resp.access_token) {
+            accessToken = resp.access_token;
+            console.log('Token renovado silenciosamente');
+          }
+          resolve();
+        }
+      });
+      tempClient.requestAccessToken({prompt:''});
+    } catch(e) {
+      console.error('Error renovando token:', e);
+      resolve(); // continuar aunque falle
+    }
   });
 }
 
