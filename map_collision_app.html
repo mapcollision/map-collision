@@ -1293,21 +1293,25 @@ async function recalcularBD() {
 }
 
 async function exportarExcel(){
-  // Obtener el gid de la hoja Base de Datos
   try {
-    const url = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'?fields=sheets.properties';
-    const r = await fetch(url, {headers:{Authorization:'Bearer '+accessToken}});
-    const d = await r.json();
+    // Obtener el sheetId de la hoja Base de Datos
+    const metaUrl = 'https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'?fields=sheets.properties';
+    const metaR = await fetch(metaUrl, {headers:{Authorization:'Bearer '+accessToken}});
+    const metaD = await metaR.json();
     var gid = 0;
-    if (d.sheets) {
-      var dbSheet = d.sheets.find(function(s){ return s.properties.title === DB_SHEET; });
+    if (metaD.sheets) {
+      var dbSheet = metaD.sheets.find(function(s){
+        return s.properties.title === DB_SHEET;
+      });
       if (dbSheet) gid = dbSheet.properties.sheetId;
     }
-    window.open('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=xlsx&gid='+gid,'_blank');
+    // single=true exporta SOLO esa hoja, no todas
+    var exportUrl = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID
+      +'/export?format=xlsx&gid='+gid+'&single=true';
+    window.open(exportUrl, '_blank');
     toast('Descargando Base de Datos en Excel...','success');
   } catch(e) {
-    window.open('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=xlsx','_blank');
-    toast('Descargando Excel...','success');
+    toast('Error al exportar: '+e.message, 'error');
   }
 }
 function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
