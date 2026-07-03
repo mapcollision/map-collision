@@ -621,6 +621,11 @@ function iniciarSesion() {
         } catch(e) { console.log('Info usuario:', e); }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        // Renovar token cada 45 minutos automáticamente
+        setInterval(function() {
+          console.log('Renovando token automáticamente...');
+          tokenClient.requestAccessToken({prompt:''});
+        }, 45 * 60 * 1000);
         // Mostrar indicador de carga
         document.getElementById('stat-total').textContent = '...';
         document.getElementById('stat-val').textContent = '...';
@@ -651,14 +656,43 @@ async function apiGet(range) {
   return (await r.json()).values||[];
 }
 async function apiAppend(range,values) {
-  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
-    {method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
-  return r.json();
+  return apiCallWithRetry(async function() {
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
+      {method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
+    return r.json();
+  });
 }
+async function renovarToken() {
+  return new Promise(function(resolve) {
+    tokenClient.requestAccessToken({prompt:''});
+    // El callback del tokenClient actualizara accessToken
+    setTimeout(resolve, 2000);
+  });
+}
+
+async function apiCallWithRetry(fn) {
+  try {
+    var result = await fn();
+    // Si es 403, renovar token y reintentar
+    if (result && result.error && result.error.code === 403) {
+      console.log('Token vencido, renovando...');
+      toast('Renovando sesión...','');
+      await renovarToken();
+      result = await fn();
+    }
+    return result;
+  } catch(e) {
+    console.error('API error:', e);
+    throw e;
+  }
+}
+
 async function apiUpdate(range,values) {
-  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',
-    {method:'PUT',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
-  return r.json();
+  return apiCallWithRetry(async function() {
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',
+      {method:'PUT',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
+    return r.json();
+  });
 }
 
 async function cargarBD() {
@@ -1239,15 +1273,25 @@ function renderBusquedaCampos(row){
   }).join('');
 }
 async function actualizarOrden(){
-  if(!ordenActual){toast('No hay orden cargada','error');return;}
-  // Verificar fila correcta buscando en BD actualizada
-  var no = ordenActual[IDX.noOrden];
-  await cargarBD();
-  var idxBD = findRow(no);
-  if(idxBD<0){toast('Orden '+no+' no encontrada en BD','error');return;}
-  ordenActualFila = idxBD + 2;
-  var row=[...dbData[idxBD]];while(row.length<57)row.push('');
-  function bv(id){const el=document.getElementById(id);return el?el.value:'';}
+  if(!ordenActual){toast('No hay orden cargada - busca primero una orden','error');return;}
+  if(!ordenActualFila||ordenActualFila<2){toast('Error de fila - busca la orden de nuevo','error');return;}
+  
+  // Verificar que los campos del formulario existen
+  var testEl = document.getElementById('b-noorden');
+  if(!testEl){toast('El formulario no está visible - busca la orden de nuevo','error');return;}
+  
+  var row=[...ordenActual];
+  while(row.length<57)row.push('');
+  
+  function bv(id){
+    var el=document.getElementById(id);
+    return el ? (el.value||'') : '';
+  }
+  
+  // Mostrar resumen de lo que se va a guardar
+  var resumen = 'Guardando orden '+ordenActual[IDX.noOrden]+' en fila '+ordenActualFila;
+  console.log(resumen);
+  toast(resumen+'...','');
   row[IDX.noOrden]=bv('b-noorden');row[IDX.asesor]=bv('b-asesor');row[IDX.valuador]=bv('b-valuador');
   row[IDX.fechaIngreso]=bv('b-fecha');row[IDX.deducible]=bv('b-deducible');row[IDX.tipoCliente]=bv('b-cliente');
   row[IDX.tipoUnidad]=bv('b-unidad');row[IDX.color]=bv('b-color');row[IDX.placas]=bv('b-placas');
@@ -1288,8 +1332,26 @@ async function actualizarOrden(){
   row[IDX.pPintura]=bv('b-ppint');row[IDX.pArmado]=bv('b-parm');row[IDX.pPulido]=bv('b-ppul');
   row[IDX.pTot]=bv('b-ptot');row[IDX.trabajoTerminado]=bv('b-tterm');
   row[IDX.statusTaller]=bv('b-stall');row[IDX.fechaEntrega]=bv('b-fentrega');
-  try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Orden actualizada ✓','success');limpiarBusqueda();await cargarBD();actualizarTablasPendientes();}
-  catch(e){toast('Error: '+e.message,'error');}
+  // Limpiar undefined/null en el row
+  var rowLimpio = row.map(function(v){ return (v===undefined||v===null)?'':v; });
+  console.log('Row a guardar (primeros 15):', rowLimpio.slice(0,15));
+  console.log('Row taller (39-56):', rowLimpio.slice(39,57));
+  try{
+    var resp = await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[rowLimpio]);
+    console.log('Respuesta API:', JSON.stringify(resp).substring(0,200));
+    if(resp && resp.error){
+      toast('Error API: '+resp.error.message,'error');
+      return;
+    }
+    toast('Orden '+rowLimpio[0]+' actualizada ✓','success');
+    limpiarBusqueda();
+    await cargarBD();
+    actualizarTablasPendientes();
+  }
+  catch(e){
+    toast('Error al guardar: '+e.message,'error');
+    console.error('Error actualizarOrden:', e);
+  }
 }
 function limpiarBusqueda(){document.getElementById('busq-orden').value='';document.getElementById('busq-resultado').style.display='none';document.getElementById('busq-campos').innerHTML='';ordenActual=null;}
 function abrirOrdenBusqueda(no){showPage('busqueda');document.getElementById('busq-orden').value=no;buscarOrden();}
@@ -1424,4 +1486,3 @@ function toast(msg,type=''){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
-
