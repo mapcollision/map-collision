@@ -506,6 +506,36 @@ const CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleuser
 const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
 const DB_SHEET  = 'Base de Datos';
 
+// Parsea fecha de BD en cualquier formato a objeto Date
+function parseDate(str) {
+  if (!str) return null;
+  var s = String(str).trim();
+  if (!s) return null;
+  // Formato YYYY-MM-DD
+  if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    var p=s.split('-'); return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  }
+  // Formato con /
+  if (s.includes('/')) {
+    var p=s.split('/');
+    if (p.length===3) {
+      var a=parseInt(p[0]),b=parseInt(p[1]),c=parseInt(p[2]);
+      // Si c > 31 es el año (DD/MM/YYYY o MM/DD/YYYY)
+      if (c > 31) {
+        // a > 12 significa que a es el día -> DD/MM/YYYY
+        if (a > 12) return new Date(c, b-1, a);
+        // b > 12 significa que b es el día -> MM/DD/YYYY
+        if (b > 12) return new Date(c, a-1, b);
+        // Asumir DD/MM/YYYY (formato México)
+        return new Date(c, b-1, a);
+      }
+      // Si a > 31 es el año al inicio -> YYYY/MM/DD
+      if (a > 31) return new Date(a, b-1, c);
+    }
+  }
+  return null;
+}
+
 const IDX = {
   noOrden:0,asesor:1,valuador:2,fechaIngreso:3,deducible:4,tipoCliente:5,
   tipoUnidad:6,color:7,placas:8,fechaReingreso:9,observaciones:10,noSiniestro:11,
@@ -672,13 +702,14 @@ function carCard(row, accentColor) {
   // Calcular retraso
   let fechaClass = 'neutral', fechaLabel = fechaStr || 'Sin fecha';
   if (fechaStr) {
-    const partes = fechaStr.split('/');
-    const fe = partes.length===3 ? new Date(partes[2],partes[1]-1,partes[0]) : new Date(fechaStr);
+    const fe = parseDate(fechaStr);
     const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const diff = Math.round((fe-hoy)/86400000);
-    if (diff < 0) { fechaClass='late'; fechaLabel=Math.abs(diff)+'d retraso'; }
-    else if (diff === 0) { fechaClass='late'; fechaLabel='Hoy'; }
-    else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
+    if (fe && !isNaN(fe.getTime())) {
+      const diff = Math.round((fe-hoy)/86400000);
+      if (diff < 0) { fechaClass='late'; fechaLabel=Math.abs(diff)+'d retraso'; }
+      else if (diff === 0) { fechaClass='late'; fechaLabel='Hoy'; }
+      else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
+    }
   }
 
   // Puntos de avance taller
@@ -990,7 +1021,7 @@ function abrirTall(noOrden){
     .map(function(c){return '<div class="readonly-field"><span>'+c[0]+'</span><span>'+(getField(ordenActual,c[1])||'—')+'</span></div>';}).join('');
   const fechaCalc=getField(ordenActual,IDX.fechaEntregaCalc);
   document.getElementById('tall-fecha-calc').value=fechaCalc||'';
-  if(fechaCalc){const hoy=new Date();hoy.setHours(0,0,0,0);const p=fechaCalc.split('/');const fe=p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(fechaCalc);const diff=Math.round((fe-hoy)/86400000);const rEl=document.getElementById('tall-retraso'),dEl=document.getElementById('tall-dias');if(diff<0){rEl.value='Con Retraso';rEl.className='auto-red';dEl.value='Excedido por '+Math.abs(diff)+' días';dEl.className='auto-red';}else{rEl.value='En tiempo';rEl.className='auto-green';dEl.value=diff+' días restantes';dEl.className='auto-green';}}
+  if(fechaCalc){const hoy=new Date();hoy.setHours(0,0,0,0);const fe=parseDate(fechaCalc);if(fe&&!isNaN(fe.getTime())){const diff=Math.round((fe-hoy)/86400000);const rEl=document.getElementById('tall-retraso'),dEl=document.getElementById('tall-dias');if(diff<0){rEl.value='Con Retraso';rEl.className='auto-red';dEl.value='Excedido por '+Math.abs(diff)+' días';dEl.className='auto-red';}else{rEl.value='En tiempo';rEl.className='auto-green';dEl.value=diff+' días restantes';dEl.className='auto-green';}}}
   setVal('tall-ubicacion',IDX.ubicacionUnidad);setDateInput('tall-inicio',IDX.inicioRep);
   setVal('tall-hoj',IDX.tecHojalatero);setVal('tall-prep',IDX.prepPintura);setVal('tall-pint',IDX.tecPintor);
   setVal('tall-mec',IDX.tecMecanico);setVal('tall-arm',IDX.tecArmado);setVal('tall-pul',IDX.tecPulido);
@@ -1197,11 +1228,8 @@ async function recalcularBD() {
       var fvf = row[IDX.fechaValFinal];
       if (fvf) {
         var dias = {Express:9,Leve:16,Medio:26,Fuerte:36,Severo:50}[clasif]||0;
-        var partes = String(fvf).split('/');
-        var d;
-        if (partes.length===3) d = new Date(partes[2],partes[1]-1,partes[0]);
-        else d = new Date(fvf);
-        if (!isNaN(d.getTime())) {
+        var d = parseDate(String(fvf));
+        if (d && !isNaN(d.getTime())) {
           d.setDate(d.getDate()+dias);
           var fechaCalc = d.toLocaleDateString('es-MX');
           if (row[IDX.fechaEntregaCalc] !== fechaCalc) {
