@@ -710,20 +710,22 @@ async function apiAppend(range,values) {
     return r.json();
   });
 }
+var timerInactividad;
+var TIEMPO_INACTIVIDAD = 20 * 60 * 1000;
+
+function resetInactividad() {
+  clearTimeout(timerInactividad);
+  timerInactividad = setTimeout(function() {
+    alert('Tu sesion ha expirado. Por favor inicia sesion de nuevo.');
+    accessToken = null; dbData = []; ordenActual = null; ordenActualFila = -1;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }, TIEMPO_INACTIVIDAD);
+}
+
 function iniciarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  var timerInactividad;
-  var TIEMPO_INACTIVIDAD = 20 * 60 * 1000;
-  function resetInactividad() {
-    clearTimeout(timerInactividad);
-    timerInactividad = setTimeout(function() {
-      alert('Tu sesion ha expirado por inactividad (20 min). Por favor inicia sesion de nuevo.');
-      accessToken = null; dbData = []; ordenActual = null; ordenActualFila = -1;
-      document.getElementById('app').style.display = 'none';
-      document.getElementById('login-screen').style.display = 'flex';
-    }, TIEMPO_INACTIVIDAD);
-  }
   ['click','keydown','mousemove','touchstart','scroll'].forEach(function(evt) {
     document.addEventListener(evt, resetInactividad, {passive:true});
   });
