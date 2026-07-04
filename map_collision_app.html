@@ -683,55 +683,18 @@ function iniciarSesion() {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
-      callback: async (resp) => {
-        if (resp.error) { toast('Error: ' + (resp.error_description||resp.error), 'error'); return; }
+      callback: function(resp) {
+        if (resp.error) { toast('Error: '+(resp.error_description||resp.error),'error'); return; }
         accessToken = resp.access_token;
-        try {
-          const uinfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',
-            {headers:{Authorization:'Bearer '+accessToken}}).then(r=>r.json());
-          document.getElementById('user-name').textContent = uinfo.name||uinfo.email||'Usuario';
-          document.getElementById('user-avatar').src = uinfo.picture||'';
-        } catch(e) { console.log('Info usuario:', e); }
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        // Cerrar sesión por inactividad después de 30 minutos
-        var timerInactividad;
-        var TIEMPO_INACTIVIDAD = 20 * 60 * 1000; // 20 minutos
-
-        function resetInactividad() {
-          clearTimeout(timerInactividad);
-          timerInactividad = setTimeout(function() {
-            // Mostrar aviso antes de cerrar
-            alert('Tu sesión ha expirado por inactividad (20 min). Por favor inicia sesión de nuevo.');
-            // Limpiar sesión
-            accessToken = null;
-            dbData = [];
-            ordenActual = null;
-            ordenActualFila = -1;
-            document.getElementById('app').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
-          }, TIEMPO_INACTIVIDAD);
-        }
-
-        // Detectar actividad del usuario
-        ['click','keydown','mousemove','touchstart','scroll'].forEach(function(evt) {
-          document.addEventListener(evt, resetInactividad, {passive:true});
-        });
-
-        // Iniciar el timer
-        resetInactividad();
-        // Mostrar indicador de carga
-        document.getElementById('stat-total').textContent = '...';
-        document.getElementById('stat-val').textContent = '...';
-        document.getElementById('stat-ref').textContent = '...';
-        document.getElementById('stat-tall').textContent = '...';
-        await cargarBD();
-        if (dbData.length === 0) {
-          // Segundo intento tras 2 segundos
-          await new Promise(function(r){setTimeout(r,2000);});
-          await cargarBD();
-        }
-        cargarDashboard();
+        fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
+          .then(function(r){return r.json();})
+          .then(function(uinfo){
+            document.getElementById('user-name').textContent=uinfo.name||uinfo.email||'Usuario';
+            document.getElementById('user-avatar').src=uinfo.picture||'';
+          }).catch(function(e){console.log('Info usuario:',e);});
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('app').style.display='block';
+        iniciarApp();
       }
     });
     tokenClient.requestAccessToken({prompt:'select_account'});
@@ -756,6 +719,34 @@ async function apiAppend(range,values) {
     return r.json();
   });
 }
+function iniciarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  var timerInactividad;
+  var TIEMPO_INACTIVIDAD = 20 * 60 * 1000;
+  function resetInactividad() {
+    clearTimeout(timerInactividad);
+    timerInactividad = setTimeout(function() {
+      alert('Tu sesion ha expirado por inactividad (20 min). Por favor inicia sesion de nuevo.');
+      accessToken = null; dbData = []; ordenActual = null; ordenActualFila = -1;
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }, TIEMPO_INACTIVIDAD);
+  }
+  ['click','keydown','mousemove','touchstart','scroll'].forEach(function(evt) {
+    document.addEventListener(evt, resetInactividad, {passive:true});
+  });
+  resetInactividad();
+  setInterval(function(){ renovarToken(); }, 45 * 60 * 1000);
+  cargarBD().then(function(){
+    if(dbData.length===0){
+      setTimeout(function(){ cargarBD().then(function(){ cargarDashboard(); }); }, 2000);
+    } else {
+      cargarDashboard();
+    }
+  });
+}
+
 async function renovarToken() {
   return new Promise(function(resolve, reject) {
     try {
@@ -1702,8 +1693,8 @@ function showPage(name){
   if(name==='dashboard-trello')cargarTrello();
   if(name==='resumen')cargarDashboard();
 }
-function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;setTimeout(()=>el.className='',3500);}
+function toast(msg,type){if(!type)type='';const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;setTimeout(()=>el.className='',3500);}
 </script>
 </body>
 </html>
-    
+
