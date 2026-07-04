@@ -1197,6 +1197,7 @@ function renderBusquedaCampos(row){
       {lbl:'Tipo Unidad',id:'b-unidad',type:'text',idx:IDX.tipoUnidad},
       {lbl:'Color',id:'b-color',type:'text',idx:IDX.color},
       {lbl:'Placas',id:'b-placas',type:'text',idx:IDX.placas},
+      {lbl:'Fecha Reingreso',id:'b-reingreso',type:'date',idx:IDX.fechaReingreso},
       {lbl:'No. Siniestro',id:'b-siniestro',type:'text',idx:IDX.noSiniestro},
       {lbl:'Observaciones',id:'b-obs',type:'textarea',idx:IDX.observaciones},
     ]},
@@ -1310,7 +1311,7 @@ async function actualizarOrden(){
   row[IDX.noOrden]=bv('b-noorden');row[IDX.asesor]=bv('b-asesor');row[IDX.valuador]=bv('b-valuador');
   row[IDX.fechaIngreso]=bv('b-fecha');row[IDX.deducible]=bv('b-deducible');row[IDX.tipoCliente]=bv('b-cliente');
   row[IDX.tipoUnidad]=bv('b-unidad');row[IDX.color]=bv('b-color');row[IDX.placas]=bv('b-placas');
-  row[IDX.noSiniestro]=bv('b-siniestro');row[IDX.observaciones]=bv('b-obs');
+  row[IDX.fechaReingreso]=bv('b-reingreso');row[IDX.noSiniestro]=bv('b-siniestro');row[IDX.observaciones]=bv('b-obs');
   row[IDX.statusVal]=bv('b-statusval');row[IDX.valuacion]=bv('b-val');row[IDX.fechaPresup]=bv('b-presup');
   row[IDX.fechaValFinal]=bv('b-valfin');row[IDX.montoPrevio]=bv('b-monto');row[IDX.complemento]=bv('b-compl');
   row[IDX.moHojalatero]=bv('b-mohoj');row[IDX.moMecanica]=bv('b-momec');row[IDX.moPintura]=bv('b-mopint');
@@ -1501,3 +1502,4 @@ function toast(msg,type=''){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
+
