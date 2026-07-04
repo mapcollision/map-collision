@@ -919,7 +919,7 @@ function carCard(row, accentColor) {
   else if (colCol === 'entregado') carBody = '#2F855A'; // verde oscuro para entregado
   else carBody = colorAuto(getField(row, IDX.color));  // color real del vehículo
 
-  // Fondo tarjeta: gris si tránsito, rojo si <=3 días, amarillo si <=7, verde si más
+  /* Fondo tarjeta por urgencia */
   let cardBg;
   if (colCol === 'transito') {
     cardBg = 'car-card transito-card';
