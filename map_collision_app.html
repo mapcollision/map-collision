@@ -6,6 +6,7 @@
 <title>MAP COLLISION CENTER</title>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root {
   --naranja:#E8640A; --naranja-dark:#B84E08; --naranja-light:#FDE8D8;
@@ -36,6 +37,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gris-claro);co
 .nav-item.active{color:var(--blanco);background:rgba(232,100,10,.15);border-left-color:var(--naranja)}
 .nav-item svg{width:18px;height:18px;flex-shrink:0}
 .nav-divider{height:1px;background:rgba(255,255,255,.08);margin:8px 20px}
+
+/* RESUMEN TARJETAS */
+.res-cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.res-card{background:var(--blanco);border-radius:var(--radius);border:1px solid var(--gris-borde);padding:14px 16px;cursor:pointer;transition:all .2s;border-left:4px solid var(--naranja)}
+.res-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.res-card.azul{border-left-color:var(--azul-medio)}
+.res-card.verde{border-left-color:var(--verde)}
+.res-card.rojo{border-left-color:var(--rojo)}
+.res-card.amarillo{border-left-color:#D69E2E}
+.res-card.gris{border-left-color:var(--gris-medio)}
+.res-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-medio);margin-bottom:5px}
+.res-card-value{font-size:32px;font-weight:800;color:var(--gris-oscuro);line-height:1}
+.res-card-sub{font-size:10px;color:var(--gris-medio);margin-top:4px}
+.res-card-click{font-size:9px;color:var(--azul-medio);margin-top:7px;font-weight:600}
+.charts-top{display:grid;grid-template-columns:200px 1fr;gap:12px;margin-bottom:12px}
+.charts-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-card{background:var(--blanco);border-radius:var(--radius);border:1px solid var(--gris-borde);padding:14px}
+.chart-card h4{font-size:11px;font-weight:700;color:var(--azul);margin-bottom:8px}
 .main{flex:1;padding:24px;overflow:auto}
 .page{display:none}
 .page.active{display:block}
@@ -286,20 +305,73 @@ textarea{resize:vertical;min-height:70px}
 
       <!-- RESUMEN -->
       <div id="page-resumen" class="page active">
-        <div class="page-header"><h2>Resumen General</h2><div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="cargarDashboard()">↻ Actualizar</button><button class="btn btn-secondary btn-sm" onclick="recalcularBD()" id="btn-recalc">⚙ Recalcular BD</button></div></div>
-        <div class="stats-row">
-          <div class="stat-card"><div class="stat-label">Total Órdenes</div><div class="stat-value" id="stat-total">—</div></div>
-          <div class="stat-card blue"><div class="stat-label">En Valuación</div><div class="stat-value" id="stat-val">—</div></div>
-          <div class="stat-card"><div class="stat-label">En Refacciones</div><div class="stat-value" id="stat-ref">—</div></div>
-          <div class="stat-card green"><div class="stat-label">En Taller</div><div class="stat-value" id="stat-tall">—</div></div>
+        <div class="page-header">
+          <h2>📊 Resumen General <span id="res-mes-badge" style="background:var(--azul-claro);color:var(--azul-medio);font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-left:8px"></span></h2>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="cargarDashboard()">↻ Actualizar</button>
+            <button class="btn btn-secondary btn-sm" onclick="recalcularBD()" id="btn-recalc">⚙ Recalcular BD</button>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-header"><h3>Órdenes Recientes</h3></div>
-          <div class="card-body" style="padding:0">
-            <table class="pending-table">
-              <thead><tr><th>No. Orden</th><th>Asesor</th><th>Tipo Unidad</th><th>Placas</th><th>Status Val.</th><th>Status Ref.</th><th>Fecha Entrega</th></tr></thead>
-              <tbody id="dash-tbody"><tr><td colspan="7" style="text-align:center;color:var(--gris-medio);padding:20px">Cargando...</td></tr></tbody>
-            </table>
+        <div style="font-size:10px;color:var(--gris-medio);margin-bottom:10px">↗ Haz clic en cualquier tarjeta para ver el listado de órdenes</div>
+        <div class="res-cards-row">
+          <div class="res-card" onclick="abrirResModal('nuevas')">
+            <div class="res-card-label">🆕 Órdenes Nuevas</div>
+            <div class="res-card-value" id="stat-nuevas">—</div>
+            <div class="res-card-sub">Este mes · reinicia el 1°</div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+          <div class="res-card azul" onclick="abrirResModal('transito')">
+            <div class="res-card-label">🚗 En Tránsito</div>
+            <div class="res-card-value" id="stat-transito">—</div>
+            <div class="res-card-sub">No entregados aún</div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+          <div class="res-card verde" onclick="abrirResModal('entregados')">
+            <div class="res-card-label">✅ Entregas Este Mes</div>
+            <div class="res-card-value" id="stat-entregados">—</div>
+            <div class="res-card-sub">Este mes · reinicia el 1°</div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+        </div>
+        <div class="res-cards-row">
+          <div class="res-card rojo" onclick="abrirResModal('riesgo')">
+            <div class="res-card-label">⚠️ En Riesgo / Vencidos</div>
+            <div class="res-card-value" id="stat-riesgo">—</div>
+            <div class="res-card-sub"><span id="stat-vencidos" style="color:var(--rojo);font-weight:600"></span> · <span id="stat-en-riesgo" style="color:#D69E2E;font-weight:600"></span></div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+          <div class="res-card amarillo" onclick="abrirResModal('val-pend')">
+            <div class="res-card-label">📋 Valuaciones Pendientes</div>
+            <div class="res-card-value" id="stat-val-pend">—</div>
+            <div class="res-card-sub">Sin autorización</div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+          <div class="res-card gris" onclick="abrirResModal('ref-pend')">
+            <div class="res-card-label">🔧 Refacciones Incompletas</div>
+            <div class="res-card-value" id="stat-ref-pend">—</div>
+            <div class="res-card-sub">Sin status completo</div>
+            <div class="res-card-click">↗ Ver listado</div>
+          </div>
+        </div>
+        <div class="subheader">📈 Gráficas</div>
+        <div class="charts-top">
+          <div class="chart-card">
+            <h4>🟢 En Tiempo vs 🔴 Retraso</h4>
+            <canvas id="chartAnillo" style="max-height:150px"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>📊 Por Clasificación — En Tiempo vs Retraso</h4>
+            <canvas id="chartClasif" style="max-height:150px"></canvas>
+          </div>
+        </div>
+        <div class="charts-bottom">
+          <div class="chart-card">
+            <h4>📅 Flujo Diario — Semana actual (Lun-Sáb)</h4>
+            <canvas id="chartDiario" style="max-height:140px"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4 id="chart-semanal-title">📆 Flujo Semanal</h4>
+            <canvas id="chartSemanal" style="max-height:140px"></canvas>
           </div>
         </div>
       </div>
@@ -770,7 +842,13 @@ function clasificarOrden(row) {
     return val === '100%' || val === 'N/A' || val === '';
   }) && getField(row,IDX.inicioRep);
 
-  if (st === 'entregado') return 'entregado';
+  if (st === 'entregado') {
+    // Solo mostrar en Dashboard si fue entregado HOY
+    var fechaEnt = parseDate(String(getField(row,IDX.fechaEntrega)||''));
+    var hoyD = new Date(); hoyD.setHours(0,0,0,0);
+    if (fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
+    return null; // No mostrar si fue entregado en otro dia
+  }
   if (st === 'en transito') return 'transito';
   if (st === 'vale') return 'vale';
   if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
@@ -806,7 +884,7 @@ async function cargarTrello() {
   dbData.forEach(row => {
     if (!getField(row,IDX.noOrden)) return;
     const col = clasificarOrden(row);
-    if (grupos[col]) grupos[col].push(row);
+    if (col && grupos[col]) grupos[col].push(row);
   });
 
   const board = document.getElementById('trello-board');
@@ -841,13 +919,7 @@ function carCard(row, accentColor) {
     else { fechaClass='ok'; fechaLabel=diff+'d restantes'; }
   }
 
-  // Puntos de avance taller
-  const pcts = [IDX.pHojalateria,IDX.pMecanica,IDX.pPrepPintura,IDX.pPintura,IDX.pArmado,IDX.pPulido,IDX.pTot];
-  const dots = pcts.map(i => {
-    const val = String(getField(row,i)||'').trim();
-    const dotColor = val==='100%'?'#276749':val==='N/A'?'#CBD5E0':val?'#E8640A':'#E2E8F0';
-    return '<div class="avance-dot" style="background:'+dotColor+'" title="'+(val||'-')+'"></div>';
-  }).join('');
+  var dots = ''; // Puntos de avance desactivados
 
   // Color del auto según COLOR REAL de la unidad en BD
   const colCol = clasificarOrden(row);
@@ -882,7 +954,7 @@ function carCard(row, accentColor) {
     + '<span class="car-fecha ' + fechaClass + '">' + fechaLabel + '</span>'
     + (reingresoLabel ? '<div class="car-reingreso">' + reingresoLabel + '</div>' : '')
     + '</div>'
-    + '<div class="car-avance">' + dots + '</div>'
+
     + '</div>';
 }
 
@@ -981,39 +1053,122 @@ function cerrarModal(e) {
 // ══════════════════════════════════════════════════
 //  DASHBOARD RESUMEN
 // ══════════════════════════════════════════════════
+// Variables globales para gráficas
+var chartAnilloInst=null,chartClasifInst=null,chartDiarioInst=null,chartSemanalInst=null;
+
 async function cargarDashboard() {
   await cargarBD();
-  const total = dbData.length;
-  const enVal = dbData.filter(r=>r[IDX.statusVal]&&r[IDX.statusVal]!=='Autorizada').length;
-  const listoTaller = ['unidad completa','mo','pend. ref. taller puede avanzar'];
-  const enRef = dbData.filter(r=>{
-    const sv=String(r[IDX.statusVal]||'').toLowerCase();
-    const sr=String(r[IDX.statusRef]||'').toLowerCase();
-    return sv==='autorizada'&&!listoTaller.includes(sr);
-  }).length;
-  // En Taller = misma lógica que Dashboard (taller-hojalateria + taller-pintura)
-  const enTall = dbData.filter(r=>{
-    const col = clasificarOrden(r);
-    return col === 'taller-hojalateria' || col === 'taller-pintura';
-  }).length;
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-val').textContent   = enVal;
-  document.getElementById('stat-ref').textContent   = enRef;
-  document.getElementById('stat-tall').textContent  = enTall;
-  const tbody = document.getElementById('dash-tbody');
-  const rec = [...dbData].reverse().slice(0,10);
-  tbody.innerHTML = rec.length ? rec.map(function(r){
-    return '<tr onclick="abrirOrdenBusqueda(\''+(r[0])+'\''+')" style="cursor:pointer">'
-      +'<td><strong>'+(r[IDX.noOrden]||'')+'</strong></td>'
-      +'<td>'+(r[IDX.asesor]||'')+'</td><td>'+(r[IDX.tipoUnidad]||'')+'</td>'
-      +'<td>'+(r[IDX.placas]||'')+'</td>'
-      +'<td>'+pillStatus(r[IDX.statusVal])+'</td>'
-      +'<td>'+pillStatus(r[IDX.statusRef])+'</td>'
-      +'<td>'+(r[IDX.fechaEntregaCalc]||'')+'</td>'
-      +'</tr>';
-  }).join('') :
-  '<tr><td colspan="7" style="text-align:center;color:var(--gris-medio);padding:20px">Sin ordenes</td></tr>';
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var mes=hoy.getMonth(),anio=hoy.getFullYear();
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var badge=document.getElementById('res-mes-badge');
+  if(badge) badge.textContent=meses[mes]+' '+anio;
+  var listoTaller=['unidad completa','mo','pend. ref. taller puede avanzar'];
+  var nuevas=dbData.filter(function(r){if(!r[IDX.noOrden])return false;var fi=parseDate(String(r[IDX.fechaIngreso]||''));return fi&&fi.getMonth()===mes&&fi.getFullYear()===anio;});
+  var transito=dbData.filter(function(r){return r[IDX.noOrden]&&String(r[IDX.statusTaller]||'').toLowerCase()==='en transito';});
+  var entregados=dbData.filter(function(r){if(!r[IDX.noOrden])return false;var fe=parseDate(String(r[IDX.fechaEntrega]||''));return String(r[IDX.statusTaller]||'').toLowerCase()==='entregado'&&fe&&fe.getMonth()===mes&&fe.getFullYear()===anio;});
+  var vencidos=[],enRiesgo=[];
+  dbData.forEach(function(r){
+    if(!r[IDX.noOrden])return;
+    if(String(r[IDX.statusTaller]||'').toLowerCase()==='entregado')return;
+    var fe=parseDate(String(r[IDX.fechaEntregaCalc]||''));
+    if(!fe||isNaN(fe.getTime()))return;
+    var diff=Math.round((fe-hoy)/86400000);
+    if(diff<0)vencidos.push(r);else if(diff<=7)enRiesgo.push(r);
+  });
+  var valPend=dbData.filter(function(r){if(!r[IDX.noOrden])return false;var sv=String(r[IDX.statusVal]||'').toLowerCase();return sv&&sv!=='autorizada'&&sv!=='rechazado'&&sv!=='perdida total';});
+  var refPend=dbData.filter(function(r){if(!r[IDX.noOrden])return false;var sv=String(r[IDX.statusVal]||'').toLowerCase();var sr=String(r[IDX.statusRef]||'').toLowerCase();return sv==='autorizada'&&!listoTaller.includes(sr);});
+  function sel(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+  sel('stat-nuevas',nuevas.length);sel('stat-transito',transito.length);sel('stat-entregados',entregados.length);
+  sel('stat-riesgo',vencidos.length+enRiesgo.length);sel('stat-vencidos',vencidos.length+' vencidos');sel('stat-en-riesgo',enRiesgo.length+' en riesgo');
+  sel('stat-val-pend',valPend.length);sel('stat-ref-pend',refPend.length);
+  window._resData={nuevas:nuevas,transito:transito,entregados:entregados,riesgo:vencidos.concat(enRiesgo),'val-pend':valPend,'ref-pend':refPend};
+  renderGraficas(hoy,mes,anio);
   actualizarTablasPendientes();
+}
+
+function abrirResModal(tipo) {
+  var titulos={'nuevas':'🆕 Órdenes Nuevas — Este Mes','transito':'🚗 En Tránsito — No Entregados','entregados':'✅ Entregas — Este Mes','riesgo':'⚠️ En Riesgo y Vencidos','val-pend':'📋 Valuaciones Pendientes','ref-pend':'🔧 Refacciones Incompletas'};
+  var colMap={'nuevas':['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Ingreso','Status Val.'],'transito':['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Entrega','Días'],'entregados':['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Entrega'],'riesgo':['No. Orden','Asesor','Tipo Unidad','Clasificación','Fecha Entrega','Estado'],'val-pend':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.'],'ref-pend':['No. Orden','Asesor','Tipo Unidad','Clasificación','Status Ref.']};
+  var rows=(window._resData&&window._resData[tipo])||[];
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var tbody=rows.map(function(r){
+    var no=r[IDX.noOrden]||'',asesor=r[IDX.asesor]||'',unidad=r[IDX.tipoUnidad]||'',placas=r[IDX.placas]||'';
+    var cells='';
+    if(tipo==='nuevas'){cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+(r[IDX.fechaIngreso]||'')+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';}
+    else if(tipo==='transito'){var fe=parseDate(String(r[IDX.fechaEntregaCalc]||''));var diff=fe?Math.round((fe-hoy)/86400000):null;var pill=diff===null?'':diff<0?'<span class="status-pill pill-red">'+Math.abs(diff)+'d retraso</span>':'<span class="status-pill pill-orange">'+diff+'d restantes</span>';cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+(r[IDX.fechaEntregaCalc]||'')+'</td><td>'+pill+'</td>';}
+    else if(tipo==='entregados'){cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+(r[IDX.fechaEntrega]||r[IDX.fechaEntregaCalc]||'')+'</td>';}
+    else if(tipo==='riesgo'){var fe2=parseDate(String(r[IDX.fechaEntregaCalc]||''));var diff2=fe2?Math.round((fe2-hoy)/86400000):null;var pill2=diff2===null?'':diff2<0?'<span class="status-pill pill-red">Vencido '+Math.abs(diff2)+'d</span>':'<span class="status-pill pill-orange">'+diff2+'d restantes</span>';cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+(r[IDX.clasificacion]||'')+'</td><td>'+(r[IDX.fechaEntregaCalc]||'')+'</td><td>'+pill2+'</td>';}
+    else if(tipo==='val-pend'){cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';}
+    else if(tipo==='ref-pend'){cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+(r[IDX.clasificacion]||'')+'</td><td>'+pillStatus(r[IDX.statusRef])+'</td>';}
+    return '<tr onclick="abrirOrdenBusqueda(''+no+'')">'+cells+'</tr>';
+  }).join('');
+  var html='<table class="pending-table"><thead><tr>'+colMap[tipo].map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>'+(tbody||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gris-medio)">Sin órdenes</td></tr>')+'</tbody></table>';
+  document.getElementById('modal-title').textContent=titulos[tipo]||tipo;
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function renderGraficas(hoy,mes,anio) {
+  var enTiempo=0,conRetraso=0;
+  var cl={Express:{ok:0,late:0},Leve:{ok:0,late:0},Medio:{ok:0,late:0},Fuerte:{ok:0,late:0},Severo:{ok:0,late:0}};
+  dbData.forEach(function(r){
+    if(!r[IDX.noOrden])return;
+    if(String(r[IDX.statusTaller]||'').toLowerCase()==='entregado')return;
+    var fe=parseDate(String(r[IDX.fechaEntregaCalc]||''));
+    if(!fe||isNaN(fe.getTime()))return;
+    var diff=Math.round((fe-hoy)/86400000);
+    var c=String(r[IDX.clasificacion]||'');
+    if(diff>=0){enTiempo++;if(cl[c])cl[c].ok++;}else{conRetraso++;if(cl[c])cl[c].late++;}
+  });
+  // Flujo diario
+  var diaSem=hoy.getDay();
+  var lunes=new Date(hoy);lunes.setDate(hoy.getDate()-(diaSem===0?6:diaSem-1));
+  var dLabels=[],dNuevas=[],dEntregas=[];
+  var dNames=['Lun','Mar','Mié','Jue','Vie','Sáb'];
+  for(var d=0;d<6;d++){
+    var dia=new Date(lunes);dia.setDate(lunes.getDate()+d);
+    dLabels.push(dNames[d]+' '+dia.getDate());
+    var nv=0,en=0;
+    dbData.forEach(function(r){
+      var fi=parseDate(String(r[IDX.fechaIngreso]||''));if(fi&&fi.toDateString()===dia.toDateString())nv++;
+      var fe=parseDate(String(r[IDX.fechaEntrega]||''));if(fe&&fe.toDateString()===dia.toDateString())en++;
+    });
+    dNuevas.push(nv);dEntregas.push(en);
+  }
+  // Flujo semanal
+  var sLabels=[],sNuevas=[],sEntregas=[];
+  var pDia=new Date(anio,mes,1),uDia=new Date(anio,mes+1,0);
+  var sNum=1,sStart=new Date(pDia);
+  while(sStart<=uDia){
+    var sEnd=new Date(sStart);sEnd.setDate(sStart.getDate()+6);if(sEnd>uDia)sEnd=new Date(uDia);
+    sLabels.push('Sem '+sNum+' ('+sStart.getDate()+'-'+sEnd.getDate()+')');
+    var nv2=0,en2=0;
+    dbData.forEach(function(r){
+      var fi=parseDate(String(r[IDX.fechaIngreso]||''));if(fi&&fi>=sStart&&fi<=sEnd)nv2++;
+      var fe=parseDate(String(r[IDX.fechaEntrega]||''));if(fe&&fe>=sStart&&fe<=sEnd)en2++;
+    });
+    sNuevas.push(nv2);sEntregas.push(en2);
+    sStart.setDate(sStart.getDate()+7);sNum++;
+  }
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var title=document.getElementById('chart-semanal-title');
+  if(title)title.textContent='📆 Flujo Semanal — '+meses[mes]+' '+anio;
+  var pct=enTiempo+conRetraso>0?Math.round(enTiempo/(enTiempo+conRetraso)*100):0;
+  var barLabel={id:'barLabel',afterDatasetsDraw:function(chart){var ctx=chart.ctx;chart.data.datasets.forEach(function(ds,i){chart.getDatasetMeta(i).data.forEach(function(bar,j){var val=ds.data[j];if(!val)return;ctx.save();ctx.fillStyle='#2D3748';ctx.font='9px Segoe UI';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(val,bar.x,bar.y-2);ctx.restore();});});}};
+  if(chartAnilloInst){chartAnilloInst.destroy();chartAnilloInst=null;}
+  if(chartClasifInst){chartClasifInst.destroy();chartClasifInst=null;}
+  if(chartDiarioInst){chartDiarioInst.destroy();chartDiarioInst=null;}
+  if(chartSemanalInst){chartSemanalInst.destroy();chartSemanalInst=null;}
+
+  var aEl=document.getElementById('chartAnillo');
+  var cEl=document.getElementById('chartClasif');
+  var dEl=document.getElementById('chartDiario');
+  var sEl=document.getElementById('chartSemanal');
+  if(aEl)chartAnilloInst=new Chart(aEl,{type:'doughnut',data:{labels:['En Tiempo ('+pct+'%)','Con Retraso ('+(100-pct)+'%)'],datasets:[{data:[enTiempo,conRetraso],backgroundColor:['#276749','#C53030'],borderWidth:3,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}}},cutout:'62%'}});
+  if(cEl)chartClasifInst=new Chart(cEl,{type:'bar',plugins:[barLabel],data:{labels:['Express','Leve','Medio','Fuerte','Severo'],datasets:[{label:'En Tiempo',data:[cl.Express.ok,cl.Leve.ok,cl.Medio.ok,cl.Fuerte.ok,cl.Severo.ok],backgroundColor:'#276749',borderRadius:3},{label:'Con Retraso',data:[cl.Express.late,cl.Leve.late,cl.Medio.late,cl.Fuerte.late,cl.Severo.late],backgroundColor:'#C53030',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}},grid:{color:'#F0F0F0'}}}}});
+  if(dEl)chartDiarioInst=new Chart(dEl,{type:'bar',plugins:[barLabel],data:{labels:dLabels,datasets:[{label:'Nuevas',data:dNuevas,backgroundColor:'#2B6CB0',borderRadius:3},{label:'Entregadas',data:dEntregas,backgroundColor:'#276749',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9},stepSize:1},grid:{color:'#F0F0F0'}}}}});
+  if(sEl)chartSemanalInst=new Chart(sEl,{type:'bar',plugins:[barLabel],data:{labels:sLabels,datasets:[{label:'Nuevas',data:sNuevas,backgroundColor:'#2B6CB0',borderRadius:3},{label:'Entregadas',data:sEntregas,backgroundColor:'#276749',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}},grid:{color:'#F0F0F0'}}}}});
 }
 
 function pillStatus(val) {
@@ -1551,4 +1706,3 @@ function toast(msg,type=''){const el=document.getElementById('toast');el.textCon
 </script>
 </body>
 </html>
-
