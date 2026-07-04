@@ -597,9 +597,6 @@ textarea{resize:vertical;min-height:70px}
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  CONFIG
-// ══════════════════════════════════════════════════
 const SHEET_ID  = '1T_XuXIOAygibq396oM2XOC_JDReN0sGj5nwJ-gUs-lE';
 const CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleusercontent.com';
 const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
@@ -671,9 +668,6 @@ let dbData = [];
 let ordenActual = null;
 let ordenActualFila = -1;
 
-// ══════════════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════════════
 function iniciarSesion() {
   try {
     if (typeof google === 'undefined' || !google.accounts) {
@@ -704,9 +698,6 @@ function iniciarSesion() {
   }
 }
 
-// ══════════════════════════════════════════════════
-//  API
-// ══════════════════════════════════════════════════
 async function apiGet(range) {
   const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range),
     {headers:{Authorization:'Bearer '+accessToken}});
@@ -817,9 +808,6 @@ async function cargarBD() {
 function getField(row,idx){ if(!row||idx>=row.length) return ''; const v=row[idx]; return (v===undefined||v===null)?'':v; }
 function findRow(no){ return dbData.findIndex(r=>String(r[0]).trim()===String(no).trim()); }
 
-// ══════════════════════════════════════════════════
-//  LÓGICA DE COLUMNAS TRELLO
-// ══════════════════════════════════════════════════
 function clasificarOrden(row) {
   const sv  = String(getField(row,IDX.statusVal)||'').toLowerCase();
   const sr  = String(getField(row,IDX.statusRef)||'').toLowerCase();
@@ -851,9 +839,6 @@ function clasificarOrden(row) {
   return 'valuacion';
 }
 
-// ══════════════════════════════════════════════════
-//  DASHBOARD TRELLO
-// ══════════════════════════════════════════════════
 async function cargarTrello() {
   await cargarBD();
   actualizarTablasPendientes();
@@ -977,9 +962,6 @@ function svgAuto(bodyColor) {
   return svg.outerHTML;
 }
 
-// ══════════════════════════════════════════════════
-//  MODAL DETALLE
-// ══════════════════════════════════════════════════
 function abrirModal(noOrden) {
   const idx = findRow(noOrden);
   if (idx < 0) return;
@@ -1041,9 +1023,6 @@ function cerrarModal(e) {
   }
 }
 
-// ══════════════════════════════════════════════════
-//  DASHBOARD RESUMEN
-// ══════════════════════════════════════════════════
 // Variables globales para gráficas
 var chartAnilloInst=null,chartClasifInst=null,chartDiarioInst=null,chartSemanalInst=null;
 
@@ -1173,9 +1152,6 @@ function pillStatus(val) {
   return '<span class="status-pill '+cls+'">'+val+'</span>';
 }
 
-// ══════════════════════════════════════════════════
-//  TABLAS PENDIENTES
-// ══════════════════════════════════════════════════
 function actualizarTablasPendientes() {
   const excluirVal=['autorizada','rechazado','perdida total','dano menor al deducible'];
   const listoTaller=['unidad completa','mo','pend. ref. taller puede avanzar'];
@@ -1198,9 +1174,6 @@ function renderPending(tbodyId,rows,cols,fnAbrir) {
   }).join(''):'<tr><td colspan="'+(cols.length+1)+'" style="text-align:center;color:var(--gris-medio);padding:16px">Sin órdenes pendientes</td></tr>';
 }
 
-// ══════════════════════════════════════════════════
-//  GUARDAR ASESOR
-// ══════════════════════════════════════════════════
 async function guardarAsesor() {
   const no=document.getElementById('as-orden').value.trim();
   if(!no){toast('Ingresa el No. de Orden','error');return;}
@@ -1216,9 +1189,6 @@ async function guardarAsesor() {
   catch(e){toast('Error: '+e.message,'error');}
 }
 
-// ══════════════════════════════════════════════════
-//  VALUACION
-// ══════════════════════════════════════════════════
 function abrirVal(noOrden) {
   const idx=findRow(noOrden);if(idx<0){toast('No encontrada','error');return;}
   ordenActual=dbData[idx];ordenActualFila=idx+2;
@@ -1298,9 +1268,6 @@ async function guardarValuacion() {
 }
 function cerrarFormVal(){document.getElementById('val-form-card').style.display='none';ordenActual=null;['val-status','val-tipo','val-complemento','val-presup','val-fecha-final','val-monto','val-hoj','val-mec','val-pint','val-mat','val-ref','val-subtotal','val-piezas','val-clasif','val-costo','val-fecha-entrega'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
 
-// ══════════════════════════════════════════════════
-//  REFACCIONES
-// ══════════════════════════════════════════════════
 function abrirRef(noOrden) {
   const idx=findRow(noOrden);if(idx<0){toast('No encontrada','error');return;}
   ordenActual=dbData[idx];ordenActualFila=idx+2;
@@ -1323,9 +1290,6 @@ async function guardarRefacciones(){if(!ordenActual)return;const row=[...ordenAc
 try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Refacciones guardadas ✓','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormRef(){document.getElementById('ref-form-card').style.display='none';ordenActual=null;}
 
-// ══════════════════════════════════════════════════
-//  TALLER
-// ══════════════════════════════════════════════════
 function abrirTall(noOrden){
   const idx=findRow(noOrden);if(idx<0){toast('No encontrada','error');return;}
   ordenActual=dbData[idx];ordenActualFila=idx+2;
@@ -1360,9 +1324,6 @@ try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[ro
 catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormTall(){document.getElementById('tall-form-card').style.display='none';ordenActual=null;}
 
-// ══════════════════════════════════════════════════
-//  BUSQUEDA
-// ══════════════════════════════════════════════════
 async function buscarOrden(){
   const no=document.getElementById('busq-orden').value.trim();
   if(!no){toast('Ingresa un No. de Orden','error');return;}
@@ -1565,12 +1526,6 @@ async function actualizarOrden(){
 function limpiarBusqueda(){document.getElementById('busq-orden').value='';document.getElementById('busq-resultado').style.display='none';document.getElementById('busq-campos').innerHTML='';ordenActual=null;}
 function abrirOrdenBusqueda(no){showPage('busqueda');document.getElementById('busq-orden').value=no;buscarOrden();}
 
-// ══════════════════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════════════════
-// ══════════════════════════════════════════════════
-//  RECALCULAR BD — actualiza clasificacion, subtotal y fecha entrega
-// ══════════════════════════════════════════════════
 async function recalcularBD() {
   var btn = document.getElementById('btn-recalc');
   btn.textContent = '⏳ Procesando...';
