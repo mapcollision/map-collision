@@ -622,10 +622,32 @@ function iniciarSesion() {
         } catch(e) { console.log('Info usuario:', e); }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        // Renovar token cada 45 minutos silenciosamente
-        setInterval(function() {
-          renovarToken();
-        }, 45 * 60 * 1000);
+        // Cerrar sesión por inactividad después de 30 minutos
+        var timerInactividad;
+        var TIEMPO_INACTIVIDAD = 20 * 60 * 1000; // 20 minutos
+
+        function resetInactividad() {
+          clearTimeout(timerInactividad);
+          timerInactividad = setTimeout(function() {
+            // Mostrar aviso antes de cerrar
+            alert('Tu sesión ha expirado por inactividad (20 min). Por favor inicia sesión de nuevo.');
+            // Limpiar sesión
+            accessToken = null;
+            dbData = [];
+            ordenActual = null;
+            ordenActualFila = -1;
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+          }, TIEMPO_INACTIVIDAD);
+        }
+
+        // Detectar actividad del usuario
+        ['click','keydown','mousemove','touchstart','scroll'].forEach(function(evt) {
+          document.addEventListener(evt, resetInactividad, {passive:true});
+        });
+
+        // Iniciar el timer
+        resetInactividad();
         // Mostrar indicador de carga
         document.getElementById('stat-total').textContent = '...';
         document.getElementById('stat-val').textContent = '...';
