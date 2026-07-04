@@ -155,6 +155,7 @@ textarea{resize:vertical;min-height:70px}
 .car-orden{font-size:10px;font-weight:700;color:var(--azul)}
 .car-unidad{font-size:9px;color:var(--gris-medio);margin-top:1px}
 .car-fecha{font-size:8px;font-weight:600;margin-top:4px;padding:2px 6px;border-radius:20px;display:inline-block}
+.car-reingreso{font-size:8px;color:var(--azul-medio);margin-top:3px;font-weight:500}
 .car-fecha.ok{background:#F0FFF4;color:var(--verde)}
 .car-fecha.late{background:#FFF5F5;color:var(--rojo)}
 .car-fecha.neutral{background:var(--azul-claro);color:var(--azul-medio)}
@@ -847,12 +848,17 @@ function carCard(row, accentColor) {
     cardBg = 'car-card';
   }
   const cardClass = cardBg;
+  // Fecha de reingreso
+  var fechaReingreso = getField(row, IDX.fechaReingreso);
+  var reingresoLabel = fechaReingreso ? 'Reingreso: '+fechaReingreso : '';
+
   return '<div class="' + cardClass + '" onclick="abrirModal(\'' + no + '\')">'
     + '<div class="car-icon">' + svgAuto(carBody) + '</div>'
     + '<div class="car-info">'
     + '<div class="car-orden">' + no + '</div>'
     + '<div class="car-unidad">' + (unidad||'—') + '</div>'
     + '<span class="car-fecha ' + fechaClass + '">' + fechaLabel + '</span>'
+    + (reingresoLabel ? '<div class="car-reingreso">' + reingresoLabel + '</div>' : '')
     + '</div>'
     + '<div class="car-avance">' + dots + '</div>'
     + '</div>';
@@ -1072,7 +1078,16 @@ function calcValuacion() {
   let clasif='';
   if(v('val-piezas')!==''){if(piezas===0)clasif='Express';else if(piezas<=3)clasif='Leve';else if(piezas<=10)clasif='Medio';else if(piezas<=20)clasif='Fuerte';else clasif='Severo';}
   document.getElementById('val-clasif').value=clasif;
-  if(fechaFinal&&clasif){const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;const fecha=new Date(fechaFinal+'T12:00:00');fecha.setDate(fecha.getDate()+dias);document.getElementById('val-fecha-entrega').value=formatDateMX(fecha);}
+  // Si hay fecha de reingreso, usarla como base en lugar de fecha val final
+  var fechaBase = v('as-reingreso') || fechaFinal;
+  if(ordenActual && !v('as-reingreso')) {
+    var fr = getField(ordenActual, IDX.fechaReingreso);
+    if(fr) {
+      if(fr.includes('/')) { var p=fr.split('/'); if(p.length===3) fechaBase=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'); }
+      else fechaBase = fr;
+    }
+  }
+  if(fechaBase&&clasif){const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;const fecha=new Date(fechaBase+'T12:00:00');fecha.setDate(fecha.getDate()+dias);document.getElementById('val-fecha-entrega').value=formatDateMX(fecha);}
   else document.getElementById('val-fecha-entrega').value='';
 }
 
@@ -1090,7 +1105,14 @@ async function guardarValuacion() {
   const clasif=document.getElementById('val-clasif').value;
   const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;
   var fechaCalc='';var ff=v('val-fecha-final');
-  if(ff&&clasif){var d=new Date(ff+'T12:00:00');d.setDate(d.getDate()+dias);fechaCalc=formatDateMX(d);}
+  // Si hay fecha de reingreso, usarla como base para el calculo
+  var fechaBase = (ordenActual && getField(ordenActual,IDX.fechaReingreso)) ? getField(ordenActual,IDX.fechaReingreso) : ff;
+  var fechaBaseISO = fechaBase;
+  if(fechaBase && fechaBase.includes('/')){
+    var p=fechaBase.split('/');
+    if(p.length===3) fechaBaseISO=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  if(fechaBaseISO&&clasif){var d=new Date(fechaBaseISO+'T12:00:00');d.setDate(d.getDate()+dias);fechaCalc=formatDateMX(d);}
   var hoj=parseFloat(v('val-hoj'))||0,mec=parseFloat(v('val-mec'))||0,pint=parseFloat(v('val-pint'))||0,mat=parseFloat(v('val-mat'))||0,ref=parseFloat(v('val-ref'))||0;
   row[IDX.statusVal]=v('val-status');row[IDX.valuacion]=v('val-tipo');
   row[IDX.fechaPresup]=v('val-presup');row[IDX.fechaValFinal]=ff;
@@ -1323,10 +1345,12 @@ async function actualizarOrden(){
     const clasif=np===0?'Express':np<=3?'Leve':np<=10?'Medio':np<=20?'Fuerte':'Severo';
     row[IDX.clasificacion]=clasif;
     row[IDX.subtotal]=(parseFloat(bv('b-mohoj'))||0)+(parseFloat(bv('b-momec'))||0)+(parseFloat(bv('b-mopint'))||0)+(parseFloat(bv('b-mat'))||0)+(parseFloat(bv('b-refv'))||0);
-    const fvf=bv('b-valfin');
-    if(fvf){
+    var fvf=bv('b-valfin');
+    var fReing=bv('b-reingreso');
+    var fechaBaseAct = fReing || fvf;
+    if(fechaBaseAct){
       const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;
-      const d=new Date(fvf+'T12:00:00');
+      const d=new Date(fechaBaseAct+'T12:00:00');
       d.setDate(d.getDate()+dias);
       row[IDX.fechaEntregaCalc]=formatDateMX(d);
     }
@@ -1419,7 +1443,9 @@ async function recalcularBD() {
       var fvf = row[IDX.fechaValFinal];
       if (fvf) {
         var dias = {Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;
-        var d = parseDate(String(fvf));
+        // Si hay fecha de reingreso, usarla en lugar de fecha val final
+        var fvf = row[IDX.fechaReingreso] || row[IDX.fechaValFinal];
+        var d = parseDate(String(fvf||''));
         if (d && !isNaN(d.getTime())) {
           d.setDate(d.getDate()+dias);
           var fechaCalc = formatDateMX(d);
