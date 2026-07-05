@@ -1149,7 +1149,7 @@ function abrirResModal(tipo) {
     } else if(tipo==='ref-pend'){
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+(r[IDX.clasificacion]||'')+'</td><td>'+pillStatus(r[IDX.statusRef])+'</td>';
     }
-    return '<tr onclick="abrirOrdenBusqueda(''+no+'')">'+cells+'</tr>';
+    return '<tr onclick="abrirOrdenBusqueda(&quot;' + no + '&quot;)" style="cursor:pointer">'+cells+'</tr>';
   }).join('');
 
   var cols=colMap[tipo]||[];
