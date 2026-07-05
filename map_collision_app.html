@@ -618,7 +618,7 @@ textarea{resize:vertical;min-height:70px}
 <script>
 const SHEET_ID  = '1T_XuXIOAygibq396oM2XOC_JDReN0sGj5nwJ-gUs-lE';
 const CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleusercontent.com';
-const SCOPES    = 'https:
+const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
 const DB_SHEET  = 'Base de Datos';
 
 
@@ -718,13 +718,13 @@ function iniciarSesion() {
 }
 
 async function apiGet(range) {
-  const r = await fetch('https:
+  const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range),
     {headers:{Authorization:'Bearer '+accessToken}});
   return (await r.json()).values||[];
 }
 async function apiAppend(range,values) {
   return apiCallWithRetry(async function() {
-    const r = await fetch('https:
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
       {method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
     return r.json();
   });
@@ -802,7 +802,7 @@ async function apiCallWithRetry(fn) {
 
 async function apiUpdate(range,values) {
   return apiCallWithRetry(async function() {
-    const r = await fetch('https:
+    const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',
       {method:'PUT',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
     return r.json();
   });
