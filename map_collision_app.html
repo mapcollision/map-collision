@@ -260,6 +260,7 @@ textarea{resize:vertical;min-height:70px}
     <div class="topbar-user">
       <img id="user-avatar" src="" alt="">
       <span id="user-name"></span>
+      <button onclick="renovarSesionManual()" style="background:#E8640A;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:11px;cursor:pointer;margin-left:8px">Renovar Sesion</button>
     </div>
   </div>
 
@@ -754,6 +755,11 @@ function iniciarApp() {
   });
 }
 
+function renovarSesionManual() {
+  tokenClient.requestAccessToken({prompt:'select_account'});
+  toast('Selecciona tu cuenta para renovar la sesion','');
+}
+
 async function renovarToken() {
   return new Promise(function(resolve, reject) {
     try {
@@ -1240,7 +1246,9 @@ function renderPending(tbodyId,rows,cols,fnAbrir) {
 async function guardarAsesor() {
   const no=document.getElementById('as-orden').value.trim();
   if(!no){toast('Ingresa el No. de Orden','error');return;}
-  if(findRow(no)>=0){toast('La orden '+no+' ya existe','error');return;}
+  var asAsesor = v('as-asesor');
+  if(!asAsesor){toast('Selecciona un Asesor','error');return;}
+  if(findRow(no)>=0){toast('La orden '+no+' ya existe en BD','error');return;}
   const row=new Array(57).fill('');
   row[IDX.noOrden]=no;row[IDX.asesor]=v('as-asesor');row[IDX.valuador]=v('as-valuador');
   row[IDX.fechaIngreso]=v('as-fecha');row[IDX.deducible]=v('as-deducible');
@@ -1248,8 +1256,20 @@ async function guardarAsesor() {
   row[IDX.color]=v('as-color');row[IDX.placas]=v('as-placas');
   row[IDX.fechaReingreso]=v('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
   row[IDX.noSiniestro]=v('as-siniestro');
-  try{await apiAppend('"'+DB_SHEET+'"!A:BF',[row]);toast('Orden '+no+' guardada OK','success');limpiarForm('as');await cargarBD();actualizarTablasPendientes();}
-  catch(e){toast('Error: '+e.message,'error');}
+  try{
+    var resp = await apiAppend("'"+DB_SHEET+"'!A:BF",[row]);
+    if(resp && resp.error){
+      toast('Error al guardar: '+resp.error.message,'error');
+      return;
+    }
+    toast('Orden '+no+' guardada OK','success');
+    limpiarForm('as');
+    await cargarBD();
+    actualizarTablasPendientes();
+  } catch(e){
+    toast('Error: '+e.message,'error');
+    console.error('guardarAsesor error:',e);
+  }
 }
 
 function abrirVal(noOrden) {
