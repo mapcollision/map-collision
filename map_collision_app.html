@@ -719,14 +719,13 @@ function iniciarSesion() {
 
 async function apiGet(range) {
   if (APPS_SCRIPT_URL) {
-    // Reintentar hasta 3 veces si el Apps Script no responde
     for (var intento = 0; intento < 3; intento++) {
       try {
         var result = await callAppsScript({action:'getData'});
-        if (result && result.values && result.values.length > 1) {
+        console.log('getData respuesta:', result ? 'ok filas='+(result.values?result.values.length:0) : 'null');
+        if (result && result.values && result.values.length > 0) {
           return result.values;
         }
-        // Si vino vac?o esperar antes de reintentar
         if (intento < 2) await new Promise(function(r){setTimeout(r, 2000);});
       } catch(e) {
         console.error('apiGet intento '+(intento+1)+' fallido:', e);
