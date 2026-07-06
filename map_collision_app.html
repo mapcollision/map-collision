@@ -701,17 +701,25 @@ function iniciarSesion() {
         // Mostrar app inmediatamente sin esperar userinfo
         document.getElementById('login-screen').style.display='none';
         document.getElementById('app').style.display='block';
-        // Intentar obtener info del usuario (no bloquear si falla)
+        // Obtener nombre del usuario
         if(accessToken) {
           fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
             .then(function(r){return r.json();})
             .then(function(uinfo){
-              usuarioActual = uinfo.name||uinfo.email||'Usuario';
-              document.getElementById('user-name').textContent=usuarioActual;
-              document.getElementById('user-avatar').src=uinfo.picture||'';
+              if(uinfo && (uinfo.name||uinfo.email)) {
+                usuarioActual = uinfo.name||uinfo.email;
+                // Guardar en localStorage para usarlo si el token vence
+                try{ localStorage.setItem('mcc_usuario', usuarioActual); }catch(e){}
+                document.getElementById('user-name').textContent=usuarioActual;
+                document.getElementById('user-avatar').src=uinfo.picture||'';
+              }
             }).catch(function(e){
-              usuarioActual = 'Usuario';
-              console.log('Info usuario no disponible:', e);
+              // Si falla, intentar recuperar nombre guardado
+              try{
+                var saved = localStorage.getItem('mcc_usuario');
+                if(saved){ usuarioActual=saved; document.getElementById('user-name').textContent=saved; }
+              }catch(e2){}
+              console.log('userinfo fallo:', e);
             });
         }
         iniciarApp();
@@ -830,7 +838,16 @@ async function renovarToken() {
 }
 
 async function callAppsScript(data) {
-  var r = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify(data)});
+  if (data.action === 'getData' || data.action === 'ping') {
+    // GET para lecturas
+    var r = await fetch(APPS_SCRIPT_URL + '?action=' + data.action);
+    return r.json();
+  }
+  // POST para escrituras
+  var r = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
   return r.json();
 }
 
