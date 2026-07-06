@@ -410,7 +410,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Deducible</label><select id="as-deducible"><option value="">Seleccionar...</option><option>Si</option><option>No</option></select></div>
               <div class="form-group"><label>Tipo de Cliente</label><select id="as-cliente"><option value="">Seleccionar...</option><option>GNP</option><option>Particular</option></select></div>
               <div class="form-group"><label>Tipo de Unidad</label><input type="text" id="as-unidad" placeholder="Ej. Sedan, SUV..."></div>
-              <div class="form-group"><label>Color</label><input type="text" id="as-color"></div>
+              <div class="form-group"><label>Color *</label><select id="as-color"><option value="">Seleccionar...</option><option>Blanco</option><option>Negro</option><option>Gris</option><option>Plata</option><option>Rojo</option><option>Azul</option><option>Verde</option><option>Amarillo</option><option>Naranja</option><option>Cafe</option><option>Vino</option><option>Oro</option><option>Morado</option><option>Rosa</option></select></div>
               <div class="form-group"><label>Placas</label><input type="text" id="as-placas"></div>
               <div class="form-group"><label>No. de Siniestro</label><input type="text" id="as-siniestro"></div>
               <div class="form-group"><label>Fecha de Reingreso</label><input type="date" id="as-reingreso"></div>
@@ -456,7 +456,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Subtotal (auto)</label><input type="text" id="val-subtotal" class="auto" readonly></div>
               <div class="form-group"><label>No. Piezas</label><input type="number" id="val-piezas" oninput="calcValuacion()"></div>
               <div class="form-group"><label>Clasificación (auto)</label><input type="text" id="val-clasif" class="auto" readonly></div>
-              <div class="form-group"><label>Costo Meta</label><input type="number" id="val-costo" placeholder="$0.00"></div>
+              <div class="form-group"><label>Costo Meta</label><div style="display:flex;align-items:center;border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden"><span style="padding:9px 10px;background:var(--gris-claro);color:var(--gris-medio);font-size:13px;border-right:1px solid var(--gris-borde)">$</span><input type="number" id="val-costo" style="border:none;border-radius:0;flex:1"></div></div>
               <div class="form-group full"><label>Fecha Entrega (auto)</label><input type="text" id="val-fecha-entrega" class="auto" readonly></div>
             </div>
             <div class="btn-group">
@@ -616,6 +616,8 @@ const SHEET_ID  = '1T_XuXIOAygibq396oM2XOC_JDReN0sGj5nwJ-gUs-lE';
 const CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleusercontent.com';
 const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
 const DB_SHEET  = 'Base de Datos';
+// URL del Apps Script Web App (llenar despues de desplegar)
+var APPS_SCRIPT_URL = '';
 
 
 function parseDate(str) {
@@ -675,7 +677,8 @@ const IDX = {
   tecMecanico:44,tecArmado:45,tecPulido:46,
   pHojalateria:47,pMecanica:48,pPrepPintura:49,pPintura:50,
   pArmado:51,pPulido:52,pTot:53,
-  trabajoTerminado:54,statusTaller:55,fechaEntrega:56
+  trabajoTerminado:54,statusTaller:55,fechaEntrega:56,
+  historial:57
 };
 
 let tokenClient, accessToken = null;
@@ -714,11 +717,20 @@ function iniciarSesion() {
 }
 
 async function apiGet(range) {
+  if (APPS_SCRIPT_URL) {
+    var result = await callAppsScript({action:'getData'});
+    if (result && result.values) return result.values;
+    return [];
+  }
   const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range),
     {headers:{Authorization:'Bearer '+accessToken}});
   return (await r.json()).values||[];
 }
-async function apiAppend(range,values) {
+async function apiAppend(range, values) {
+  if (APPS_SCRIPT_URL) {
+    var row = values && values[0] ? values[0] : [];
+    return callAppsScript({action:'appendRow', row:row});
+  }
   return apiCallWithRetry(async function() {
     const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+':append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS',
       {method:'POST',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
@@ -784,10 +796,14 @@ async function renovarToken() {
   });
 }
 
+async function callAppsScript(data) {
+  var r = await fetch(APPS_SCRIPT_URL, {method:'POST', body:JSON.stringify(data)});
+  return r.json();
+}
+
 async function apiCallWithRetry(fn) {
   try {
     var result = await fn();
-    
     if (result && result.error && result.error.code === 403) {
       console.log('Token vencido, renovando...');
       toast('Renovando sesion...','');
@@ -801,7 +817,11 @@ async function apiCallWithRetry(fn) {
   }
 }
 
-async function apiUpdate(range,values) {
+async function apiUpdate(range, values) {
+  if (APPS_SCRIPT_URL) {
+    var row = values && values[0] ? values[0] : [];
+    return callAppsScript({action:'updateRow', row:row, rowIndex:ordenActualFila});
+  }
   return apiCallWithRetry(async function() {
     const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range)+'?valueInputOption=USER_ENTERED',
       {method:'PUT',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:JSON.stringify({values})});
@@ -957,15 +977,31 @@ function carCard(row, accentColor) {
 }
 
 function colorAuto(colorStr) {
-  const mapa = {
-    'blanco':'#F7F8FA','negro':'#1A202C','gris':'#718096','plata':'#CBD5E0',
-    'rojo':'#E53E3E','azul':'#3182CE','verde':'#38A169','amarillo':'#D69E2E',
-    'naranja':'#E8640A','cafe':'#744210','beige':'#F6E05E','morado':'#805AD5',
-    'rosa':'#ED64A6','dorado':'#D69E2E'
+  if (!colorStr) return '#A0AEC0';
+  var c = colorStr.toLowerCase().trim();
+  // Coincidencias exactas primero (mas especificas)
+  var mapa = {
+    'blanco':    '#F7F8FA',
+    'negro':     '#1A202C',
+    'gris':      '#718096',
+    'plata':     '#CBD5E0',
+    'rojo':      '#E53E3E',
+    'azul':      '#3182CE',
+    'verde':     '#38A169',
+    'amarillo':  '#ECC94B',
+    'naranja':   '#E8640A',
+    'cafe':      '#744210',
+    'vino':      '#702459',
+    'oro':       '#D69E2E',
+    'morado':    '#805AD5',
+    'rosa':      '#ED64A6'
   };
-  const c = colorStr.toLowerCase();
-  for (const [key, val] of Object.entries(mapa)) {
-    if (c.includes(key)) return val;
+  // Buscar coincidencia exacta primero
+  if (mapa[c]) return mapa[c];
+  // Luego buscar si el color contiene alguna clave
+  var keys = Object.keys(mapa);
+  for (var i=0; i<keys.length; i++) {
+    if (c.indexOf(keys[i]) >= 0) return mapa[keys[i]];
   }
   return '#A0AEC0';
 }
@@ -1246,8 +1282,14 @@ function renderPending(tbodyId,rows,cols,fnAbrir) {
 async function guardarAsesor() {
   const no=document.getElementById('as-orden').value.trim();
   if(!no){toast('Ingresa el No. de Orden','error');return;}
-  var asAsesor = v('as-asesor');
-  if(!asAsesor){toast('Selecciona un Asesor','error');return;}
+  if(!v('as-asesor')){toast('Selecciona un Asesor','error');return;}
+  if(!v('as-valuador')){toast('Selecciona un Valuador','error');return;}
+  if(!v('as-fecha')){toast('Ingresa la Fecha de Ingreso','error');return;}
+  if(!v('as-cliente')){toast('Selecciona el Tipo de Cliente','error');return;}
+  if(!v('as-unidad')){toast('Ingresa el Tipo de Unidad','error');return;}
+  if(!v('as-color')){toast('Selecciona el Color','error');return;}
+  if(!v('as-placas')){toast('Ingresa las Placas','error');return;}
+  if(!v('as-siniestro')){toast('Ingresa el No. de Siniestro','error');return;}
   if(findRow(no)>=0){toast('La orden '+no+' ya existe en BD','error');return;}
   const row=new Array(57).fill('');
   row[IDX.noOrden]=no;row[IDX.asesor]=v('as-asesor');row[IDX.valuador]=v('as-valuador');
@@ -1256,6 +1298,8 @@ async function guardarAsesor() {
   row[IDX.color]=v('as-color');row[IDX.placas]=v('as-placas');
   row[IDX.fechaReingreso]=v('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
   row[IDX.noSiniestro]=v('as-siniestro');
+  row[57] = registrarCambio(no, 'Nueva orden');
+  while(row.length<58)row.push('');
   try{
     var resp = await apiAppend("'"+DB_SHEET+"'!A:BF",[row]);
     if(resp && resp.error){
@@ -1315,6 +1359,8 @@ function calcValuacion() {
 
 async function guardarValuacion() {
   if(!ordenActual){toast('Error: no hay orden cargada','error');return;}
+  if(!v('val-status')){toast('Selecciona el Status de Valuacion','error');return;}
+  if(v('val-piezas')===''){toast('Ingresa el No. de Piezas','error');return;}
   const no=ordenActual[IDX.noOrden];
   
   if(ordenActualFila<2){
@@ -1343,6 +1389,8 @@ async function guardarValuacion() {
   row[IDX.materiales]=v('val-mat');row[IDX.refaccionesV]=v('val-ref');row[IDX.subtotal]=hoj+mec+pint+mat+ref;
   row[IDX.noPiezas]=v('val-piezas');row[IDX.clasificacion]=clasif;
   row[IDX.costoMeta]=v('val-costo');row[IDX.fechaEntregaCalc]=fechaCalc;
+  row[57] = registrarCambio(no, 'Valuacion');
+  while(row.length<58)row.push('');
   try{
     await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);
     toast('Valuacion de orden '+no+' guardada OK','success');
@@ -1369,7 +1417,12 @@ function abrirRef(noOrden) {
   document.getElementById('ref-form-card').scrollIntoView({behavior:'smooth'});
 }
 function calcRefacciones(){const surt=parseInt(v('ref-pz-surt'))||0,salv=parseInt(v('ref-pz-salv'))||0,total=parseInt(v('ref-val-piezas'))||0,suma=surt+salv;let r='';if(v('ref-pz-surt')!==''||v('ref-pz-salv')!==''){if(suma===total)r='Completo';else if(suma<total)r='Faltan '+(total-suma)+' pz.';else r='Excede por '+(suma-total)+' pz.';}document.getElementById('ref-total-pz').value=r;}
-async function guardarRefacciones(){if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.fechaFinRef]=v('ref-fecha-fin');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
+async function guardarRefacciones(){
+  if(!ordenActual)return;
+  if(!v('ref-fecha-ini')){toast('Ingresa la Fecha Inicial de Refacciones','error');return;}
+  if(!v('ref-status')){toast('Selecciona el Status de Refacciones','error');return;}
+  if(v('ref-pz-surt')===''){toast('Ingresa las Piezas Surtidas','error');return;}const row=[...ordenActual];while(row.length<57)row.push('');row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.fechaFinRef]=v('ref-fecha-fin');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
+row[57]=registrarCambio(row[0],'Refacciones');while(row.length<58)row.push('');
 try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Refacciones guardadas OK','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormRef(){document.getElementById('ref-form-card').style.display='none';ordenActual=null;}
 
@@ -1395,7 +1448,10 @@ function abrirTall(noOrden){
   document.getElementById('tall-form-card').style.display='block';
   document.getElementById('tall-form-card').scrollIntoView({behavior:'smooth'});
 }
-async function guardarTaller(){if(!ordenActual)return;const row=[...ordenActual];while(row.length<57)row.push('');
+async function guardarTaller(){
+  if(!ordenActual)return;
+  if(!v('tall-ubicacion')){toast('Selecciona la Ubicacion de la Unidad','error');return;}
+  if(!v('tall-inicio')){toast('Ingresa la Fecha de Inicio de Reparacion','error');return;}const row=[...ordenActual];while(row.length<57)row.push('');
 row[IDX.ubicacionUnidad]=v('tall-ubicacion');row[IDX.inicioRep]=v('tall-inicio');
 row[IDX.tecHojalatero]=v('tall-hoj');row[IDX.prepPintura]=v('tall-prep');row[IDX.tecPintor]=v('tall-pint');
 row[IDX.tecMecanico]=v('tall-mec');row[IDX.tecArmado]=v('tall-arm');row[IDX.tecPulido]=v('tall-pul');
@@ -1403,6 +1459,7 @@ row[IDX.pHojalateria]=v('tall-p-hoj');row[IDX.pMecanica]=v('tall-p-mec');row[IDX
 row[IDX.pPintura]=v('tall-p-pint');row[IDX.pArmado]=v('tall-p-arm');row[IDX.pPulido]=v('tall-p-pul');
 row[IDX.pTot]=v('tall-p-tot');row[IDX.trabajoTerminado]=v('tall-terminado');
 row[IDX.statusTaller]=v('tall-status');row[IDX.fechaEntrega]=v('tall-fecha-entrega');
+row[57]=registrarCambio(row[0],'Taller');while(row.length<58)row.push('');
 try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":BF"+ordenActualFila,[row]);toast('Taller guardado OK','success');cerrarFormTall();await cargarBD();actualizarTablasPendientes();}
 catch(e){toast('Error: '+e.message,'error');}}
 function cerrarFormTall(){document.getElementById('tall-form-card').style.display='none';ordenActual=null;}
@@ -1430,7 +1487,7 @@ function renderBusquedaCampos(row){
       {lbl:'Deducible',id:'b-deducible',type:'select',idx:IDX.deducible,opts:['Si','No']},
       {lbl:'Tipo Cliente',id:'b-cliente',type:'select',idx:IDX.tipoCliente,opts:['GNP','Particular']},
       {lbl:'Tipo Unidad',id:'b-unidad',type:'text',idx:IDX.tipoUnidad},
-      {lbl:'Color',id:'b-color',type:'text',idx:IDX.color},
+      {lbl:'Color',id:'b-color',type:'select',idx:IDX.color,opts:['Blanco','Negro','Gris','Plata','Rojo','Azul','Verde','Amarillo','Naranja','Cafe','Vino','Oro','Morado','Rosa']},
       {lbl:'Placas',id:'b-placas',type:'text',idx:IDX.placas},
       {lbl:'Fecha Reingreso',id:'b-reingreso',type:'date',idx:IDX.fechaReingreso},
       {lbl:'No. Siniestro',id:'b-siniestro',type:'text',idx:IDX.noSiniestro},
@@ -1449,6 +1506,7 @@ function renderBusquedaCampos(row){
       {lbl:'Materiales',id:'b-mat',type:'currency',idx:IDX.materiales},
       {lbl:'Refacciones Val.',id:'b-refv',type:'currency',idx:IDX.refaccionesV},
       {lbl:'No. Piezas',id:'b-piezas',type:'number',idx:IDX.noPiezas},
+      {lbl:'No. Ref. Valuacion',id:'b-norefval',type:'number',idx:IDX.noRefValuacion},
       {lbl:'Costo Meta',id:'b-costo',type:'currency',idx:IDX.costoMeta},
     ]},
     {sec:'Refacciones',fields:[
@@ -1536,21 +1594,59 @@ async function actualizarOrden(){
   
   function bv(id){
     var el=document.getElementById(id);
-    return el ? (el.value||'') : '';
+    if(!el) return '';
+    return el.value || '';
+  }
+  
+  // bvOrKeep: si el campo esta vacio, conserva el valor original de BD
+  function bvOrKeep(id, idxField){
+    var el=document.getElementById(id);
+    if(!el || el.value==='') return row[idxField] || '';
+    return el.value;
+  }
+  
+  // bvDate: lee fecha del input (YYYY-MM-DD) y la convierte a DD/MM/YYYY
+  // si esta vacia conserva el valor original
+  function bvDate(id, idxField){
+    var el=document.getElementById(id);
+    if(!el || el.value==='') return row[idxField] || '';
+    var val=el.value; // YYYY-MM-DD
+    if(val.includes('-') && val.length===10){
+      var p=val.split('-');
+      return p[2]+'/'+p[1]+'/'+p[0]; // DD/MM/YYYY
+    }
+    return val;
   }
   
   
   var resumen = 'Guardando orden '+ordenActual[IDX.noOrden]+' en fila '+ordenActualFila;
   console.log(resumen);
   toast(resumen+'...','');
-  row[IDX.noOrden]=bv('b-noorden');row[IDX.asesor]=bv('b-asesor');row[IDX.valuador]=bv('b-valuador');
-  row[IDX.fechaIngreso]=bv('b-fecha');row[IDX.deducible]=bv('b-deducible');row[IDX.tipoCliente]=bv('b-cliente');
-  row[IDX.tipoUnidad]=bv('b-unidad');row[IDX.color]=bv('b-color');row[IDX.placas]=bv('b-placas');
-  row[IDX.fechaReingreso]=bv('b-reingreso');row[IDX.noSiniestro]=bv('b-siniestro');row[IDX.observaciones]=bv('b-obs');
-  row[IDX.statusVal]=bv('b-statusval');row[IDX.valuacion]=bv('b-val');row[IDX.fechaPresup]=bv('b-presup');
-  row[IDX.fechaValFinal]=bv('b-valfin');row[IDX.montoPrevio]=bv('b-monto');row[IDX.complemento]=bv('b-compl');
-  row[IDX.moHojalatero]=bv('b-mohoj');row[IDX.moMecanica]=bv('b-momec');row[IDX.moPintura]=bv('b-mopint');
-  row[IDX.materiales]=bv('b-mat');row[IDX.refaccionesV]=bv('b-refv');row[IDX.noPiezas]=bv('b-piezas');
+  row[IDX.noOrden]=bv('b-noorden');
+  row[IDX.asesor]=bvOrKeep('b-asesor',IDX.asesor);
+  row[IDX.valuador]=bvOrKeep('b-valuador',IDX.valuador);
+  row[IDX.fechaIngreso]=bvDate('b-fecha',IDX.fechaIngreso);
+  row[IDX.deducible]=bvOrKeep('b-deducible',IDX.deducible);
+  row[IDX.tipoCliente]=bvOrKeep('b-cliente',IDX.tipoCliente);
+  row[IDX.tipoUnidad]=bv('b-unidad');
+  row[IDX.color]=bv('b-color');
+  row[IDX.placas]=bv('b-placas');
+  row[IDX.fechaReingreso]=bvDate('b-reingreso',IDX.fechaReingreso);
+  row[IDX.noSiniestro]=bv('b-siniestro');
+  row[IDX.observaciones]=bv('b-obs');
+  row[IDX.statusVal]=bvOrKeep('b-statusval',IDX.statusVal);
+  row[IDX.valuacion]=bvOrKeep('b-val',IDX.valuacion);
+  row[IDX.fechaPresup]=bvDate('b-presup',IDX.fechaPresup);
+  row[IDX.fechaValFinal]=bvDate('b-valfin',IDX.fechaValFinal);
+  row[IDX.montoPrevio]=bv('b-monto');
+  row[IDX.complemento]=bvOrKeep('b-compl',IDX.complemento);
+  row[IDX.moHojalatero]=bv('b-mohoj');
+  row[IDX.moMecanica]=bv('b-momec');
+  row[IDX.moPintura]=bv('b-mopint');
+  row[IDX.materiales]=bv('b-mat');
+  row[IDX.refaccionesV]=bv('b-refv');
+  row[IDX.noPiezas]=bv('b-piezas');
+  row[IDX.noRefValuacion]=bv('b-norefval');
   row[IDX.costoMeta]=bv('b-costo');
   const npStr=bv('b-piezas');
   if(npStr!==''){
@@ -1575,17 +1671,36 @@ async function actualizarOrden(){
       row[IDX.totalPiezas]=suma===np?'Completo':suma<np?'Faltan '+(np-suma)+' pz.':'Excede por '+(suma-np)+' pz.';
     }
   }
-  row[IDX.fechaIniRef]=bv('b-refini');row[IDX.fechaFinRef]=bv('b-reffin');
-  row[IDX.pedidoImpart]=bv('b-inpart');row[IDX.tot]=bv('b-tot');row[IDX.comentarioRef]=bv('b-comref');row[IDX.statusRef]=bv('b-statusref');
-  row[IDX.pzSurtidas]=bv('b-pzsurt');row[IDX.pzSalvadas]=bv('b-pzsalv');row[IDX.comentarioPzSalvamento]=bv('b-compz');
-  row[IDX.ubicacionUnidad]=bv('b-ubic');row[IDX.inicioRep]=bv('b-inicio');
-  row[IDX.tecHojalatero]=bv('b-techoj');row[IDX.prepPintura]=bv('b-prep');row[IDX.tecPintor]=bv('b-tecpint');
-  row[IDX.tecMecanico]=bv('b-tecmec');row[IDX.tecArmado]=bv('b-tecarm');row[IDX.tecPulido]=bv('b-tecpul');
-  row[IDX.pHojalateria]=bv('b-phoj');row[IDX.pMecanica]=bv('b-pmec');row[IDX.pPrepPintura]=bv('b-pprep');
-  row[IDX.pPintura]=bv('b-ppint');row[IDX.pArmado]=bv('b-parm');row[IDX.pPulido]=bv('b-ppul');
-  row[IDX.pTot]=bv('b-ptot');row[IDX.trabajoTerminado]=bv('b-tterm');
-  row[IDX.statusTaller]=bv('b-stall');row[IDX.fechaEntrega]=bv('b-fentrega');
+  row[IDX.fechaIniRef]=bvDate('b-refini',IDX.fechaIniRef);
+  row[IDX.fechaFinRef]=bvDate('b-reffin',IDX.fechaFinRef);
+  row[IDX.pedidoImpart]=bv('b-inpart');
+  row[IDX.tot]=bv('b-tot');
+  row[IDX.comentarioRef]=bv('b-comref');
+  row[IDX.statusRef]=bvOrKeep('b-statusref',IDX.statusRef);
+  row[IDX.pzSurtidas]=bv('b-pzsurt');
+  row[IDX.pzSalvadas]=bv('b-pzsalv');
+  row[IDX.comentarioPzSalvamento]=bv('b-compz');
+  row[IDX.ubicacionUnidad]=bvOrKeep('b-ubic',IDX.ubicacionUnidad);
+  row[IDX.inicioRep]=bvDate('b-inicio',IDX.inicioRep);
+  row[IDX.tecHojalatero]=bvOrKeep('b-techoj',IDX.tecHojalatero);
+  row[IDX.prepPintura]=bvOrKeep('b-prep',IDX.prepPintura);
+  row[IDX.tecPintor]=bvOrKeep('b-tecpint',IDX.tecPintor);
+  row[IDX.tecMecanico]=bvOrKeep('b-tecmec',IDX.tecMecanico);
+  row[IDX.tecArmado]=bvOrKeep('b-tecarm',IDX.tecArmado);
+  row[IDX.tecPulido]=bvOrKeep('b-tecpul',IDX.tecPulido);
+  row[IDX.pHojalateria]=bvOrKeep('b-phoj',IDX.pHojalateria);
+  row[IDX.pMecanica]=bvOrKeep('b-pmec',IDX.pMecanica);
+  row[IDX.pPrepPintura]=bvOrKeep('b-pprep',IDX.pPrepPintura);
+  row[IDX.pPintura]=bvOrKeep('b-ppint',IDX.pPintura);
+  row[IDX.pArmado]=bvOrKeep('b-parm',IDX.pArmado);
+  row[IDX.pPulido]=bvOrKeep('b-ppul',IDX.pPulido);
+  row[IDX.pTot]=bvOrKeep('b-ptot',IDX.pTot);
+  row[IDX.trabajoTerminado]=bvDate('b-tterm',IDX.trabajoTerminado);
+  row[IDX.statusTaller]=bvOrKeep('b-stall',IDX.statusTaller);
+  row[IDX.fechaEntrega]=bvDate('b-fentrega',IDX.fechaEntrega);
   
+  row[57] = registrarCambio(row[0], 'Busqueda actualizada');
+  while(row.length<58)row.push('');
   var rowLimpio = row.map(function(v){ return (v===undefined||v===null)?'':v; });
   console.log('Row a guardar (primeros 15):', rowLimpio.slice(0,15));
   console.log('Row taller (39-56):', rowLimpio.slice(39,57));
@@ -1606,6 +1721,17 @@ async function actualizarOrden(){
     console.error('Error actualizarOrden:', e);
   }
 }
+function registrarCambio(noOrden, seccion) {
+  var ahora = new Date();
+  var dd = String(ahora.getDate()).padStart(2,'0');
+  var mm = String(ahora.getMonth()+1).padStart(2,'0');
+  var yyyy = ahora.getFullYear();
+  var hh = String(ahora.getHours()).padStart(2,'0');
+  var min = String(ahora.getMinutes()).padStart(2,'0');
+  var usuario = document.getElementById('user-name').textContent || 'Usuario';
+  return dd+'/'+mm+'/'+yyyy+' '+hh+':'+min+' | '+usuario+' | '+seccion;
+}
+
 function limpiarBusqueda(){document.getElementById('busq-orden').value='';document.getElementById('busq-resultado').style.display='none';document.getElementById('busq-campos').innerHTML='';ordenActual=null;}
 function abrirOrdenBusqueda(no){showPage('busqueda');document.getElementById('busq-orden').value=no;buscarOrden();}
 
