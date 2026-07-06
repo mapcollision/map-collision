@@ -698,15 +698,22 @@ function iniciarSesion() {
       callback: function(resp) {
         if (resp.error) { toast('Error: '+(resp.error_description||resp.error),'error'); return; }
         accessToken = resp.access_token;
-        fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
-          .then(function(r){return r.json();})
-          .then(function(uinfo){
-            usuarioActual = uinfo.name||uinfo.email||'Usuario';
-            document.getElementById('user-name').textContent=usuarioActual;
-            document.getElementById('user-avatar').src=uinfo.picture||'';
-          }).catch(function(e){console.log('Info usuario:',e);});
+        // Mostrar app inmediatamente sin esperar userinfo
         document.getElementById('login-screen').style.display='none';
         document.getElementById('app').style.display='block';
+        // Intentar obtener info del usuario (no bloquear si falla)
+        if(accessToken) {
+          fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
+            .then(function(r){return r.json();})
+            .then(function(uinfo){
+              usuarioActual = uinfo.name||uinfo.email||'Usuario';
+              document.getElementById('user-name').textContent=usuarioActual;
+              document.getElementById('user-avatar').src=uinfo.picture||'';
+            }).catch(function(e){
+              usuarioActual = 'Usuario';
+              console.log('Info usuario no disponible:', e);
+            });
+        }
         iniciarApp();
       }
     });
@@ -776,11 +783,15 @@ function iniciarApp() {
   if(badge) badge.textContent = 'Cargando...';
   cargarBD().then(function(){
     if(dbData.length===0){
-      // Si vino vac?o, reintentar despu?s de 3 segundos
       if(badge) badge.textContent = 'Reintentando...';
       setTimeout(function(){
         cargarBD().then(function(){
-          cargarDashboard();
+          if(dbData.length > 0){
+            cargarDashboard();
+          } else {
+            toast('Error cargando datos. Presiona Actualizar.','error');
+            if(badge) badge.textContent = '';
+          }
         });
       }, 3000);
     } else {
