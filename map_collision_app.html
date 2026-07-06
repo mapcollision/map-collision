@@ -701,7 +701,8 @@ function iniciarSesion() {
         fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
           .then(function(r){return r.json();})
           .then(function(uinfo){
-            document.getElementById('user-name').textContent=uinfo.name||uinfo.email||'Usuario';
+            usuarioActual = uinfo.name||uinfo.email||'Usuario';
+            document.getElementById('user-name').textContent=usuarioActual;
             document.getElementById('user-avatar').src=uinfo.picture||'';
           }).catch(function(e){console.log('Info usuario:',e);});
         document.getElementById('login-screen').style.display='none';
@@ -739,6 +740,7 @@ async function apiAppend(range, values) {
 }
 var timerInactividad;
 var TIEMPO_INACTIVIDAD = 20 * 60 * 1000;
+var usuarioActual = 'Usuario';
 
 function resetInactividad() {
   clearTimeout(timerInactividad);
@@ -1728,7 +1730,7 @@ function registrarCambio(noOrden, seccion) {
   var yyyy = ahora.getFullYear();
   var hh = String(ahora.getHours()).padStart(2,'0');
   var min = String(ahora.getMinutes()).padStart(2,'0');
-  var usuario = document.getElementById('user-name').textContent || 'Usuario';
+  var usuario = usuarioActual || 'Usuario';
   return dd+'/'+mm+'/'+yyyy+' '+hh+':'+min+' | '+usuario+' | '+seccion;
 }
 
