@@ -406,7 +406,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>No. Orden *</label><input type="text" id="as-orden" placeholder="Ej. 2025-001"></div>
               <div class="form-group"><label>Asesor *</label><select id="as-asesor"><option value="">Seleccionar...</option><option>Horacio</option><option>Esteban</option></select></div>
               <div class="form-group"><label>Valuador Asignado</label><select id="as-valuador"><option value="">Seleccionar...</option><option>Roberto</option><option>Cristal</option></select></div>
-              <div class="form-group"><label>Fecha de Ingreso *</label><input type="date" id="as-fecha"></div>
+              <div class="form-group"><label>Fecha de Ingreso</label><input type="date" id="as-fecha" class="auto" readonly></div>
               <div class="form-group"><label>Deducible</label><select id="as-deducible"><option value="">Seleccionar...</option><option>Si</option><option>No</option></select></div>
               <div class="form-group"><label>Tipo de Cliente</label><select id="as-cliente"><option value="">Seleccionar...</option><option>GNP</option><option>Particular</option></select></div>
               <div class="form-group"><label>Tipo de Unidad</label><input type="text" id="as-unidad" placeholder="Ej. Sedan, SUV..."></div>
@@ -866,17 +866,22 @@ function clasificarOrden(row) {
   }) && getField(row,IDX.inicioRep);
 
   if (st === 'entregado') {
-    
     var fechaEnt = parseDate(String(getField(row,IDX.fechaEntrega)||''));
     var hoyD = new Date(); hoyD.setHours(0,0,0,0);
     if (fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
-    return null; 
+    return null;
   }
-  if (st === 'en transito') return 'transito';
   if (st === 'vale') return 'vale';
+  // Si ya tiene piezas listas para taller, pasa a taller aunque diga "en transito"
+  if (listoTaller.includes(sr)) {
+    if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
+    if (getField(row,IDX.inicioRep)) return 'taller-pintura';
+    return 'taller-hojalateria';
+  }
+  // Solo queda en transito si NO tiene refacciones listas
+  if (st === 'en transito') return 'transito';
   if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
-  if (getField(row,IDX.inicioRep)) return 'taller-pintura'; 
-  if (listoTaller.includes(sr)) return 'taller-hojalateria'; 
+  if (getField(row,IDX.inicioRep)) return 'taller-pintura';
   if (sv === 'autorizada' && sr && !listoTaller.includes(sr)) return 'refacciones';
   if (sv === 'autorizada') return 'refacciones';
   if (sv && sv !== 'rechazado' && sv !== 'perdida total') return 'valuacion';
@@ -1347,12 +1352,19 @@ function calcValuacion() {
   if(v('val-piezas')!==''){if(piezas===0)clasif='Express';else if(piezas<=3)clasif='Leve';else if(piezas<=10)clasif='Medio';else if(piezas<=20)clasif='Fuerte';else clasif='Severo';}
   document.getElementById('val-clasif').value=clasif;
   
-  var fechaBase = v('as-reingreso') || fechaFinal;
-  if(ordenActual && !v('as-reingreso')) {
+  // Prioridad: fechaReingreso > fechaFinRef > fechaValFinal
+  var fechaBase = fechaFinal;
+  if(ordenActual) {
     var fr = getField(ordenActual, IDX.fechaReingreso);
-    if(fr) {
-      if(fr.includes('/')) { var p=fr.split('/'); if(p.length===3) fechaBase=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0'); }
-      else fechaBase = fr;
+    var ffinRef = getField(ordenActual, IDX.fechaFinRef);
+    var baseRaw = fr || ffinRef || '';
+    if(baseRaw) {
+      if(baseRaw.includes('/')) {
+        var p=baseRaw.split('/');
+        if(p.length===3) fechaBase=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+      } else {
+        fechaBase = baseRaw;
+      }
     }
   }
   if(fechaBase&&clasif){const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;const fecha=new Date(fechaBase+'T12:00:00');fecha.setDate(fecha.getDate()+dias);document.getElementById('val-fecha-entrega').value=formatDateMX(fecha);}
@@ -1658,7 +1670,8 @@ async function actualizarOrden(){
     row[IDX.subtotal]=(parseFloat(bv('b-mohoj'))||0)+(parseFloat(bv('b-momec'))||0)+(parseFloat(bv('b-mopint'))||0)+(parseFloat(bv('b-mat'))||0)+(parseFloat(bv('b-refv'))||0);
     var fvf=bv('b-valfin');
     var fReing=bv('b-reingreso');
-    var fechaBaseAct = fReing || fvf;
+    var fFinRef=bv('b-reffin');
+    var fechaBaseAct = fReing || fFinRef || fvf;
     if(fechaBaseAct){
       const dias={Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;
       const d=new Date(fechaBaseAct+'T12:00:00');
@@ -1779,7 +1792,7 @@ async function recalcularBD() {
       if (fvf) {
         var dias = {Express:7,Leve:10,Medio:20,Fuerte:30,Severo:46}[clasif]||0;
         
-        var fvf = row[IDX.fechaReingreso] || row[IDX.fechaValFinal];
+        var fvf = row[IDX.fechaReingreso] || row[IDX.fechaFinRef] || row[IDX.fechaValFinal];
         var d = parseDate(String(fvf||''));
         if (d && !isNaN(d.getTime())) {
           d.setDate(d.getDate()+dias);
@@ -1856,6 +1869,7 @@ function showPage(name){
   const navItems=document.querySelectorAll('.nav-item');
   if(navMap[name]!==undefined)navItems[navMap[name]].classList.add('active');
   if(name==='valuacion'||name==='refacciones'||name==='taller')actualizarTablasPendientes();
+  if(name==='asesores'){var hoy=new Date();var dd=String(hoy.getDate()).padStart(2,'0');var mm=String(hoy.getMonth()+1).padStart(2,'0');var yyyy=hoy.getFullYear();var fechaEl=document.getElementById('as-fecha');if(fechaEl)fechaEl.value=yyyy+'-'+mm+'-'+dd;}
   if(name==='dashboard-trello')cargarTrello();
   if(name==='resumen')cargarDashboard();
 }
