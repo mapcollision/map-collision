@@ -719,8 +719,20 @@ function iniciarSesion() {
 
 async function apiGet(range) {
   if (APPS_SCRIPT_URL) {
-    var result = await callAppsScript({action:'getData'});
-    if (result && result.values) return result.values;
+    // Reintentar hasta 3 veces si el Apps Script no responde
+    for (var intento = 0; intento < 3; intento++) {
+      try {
+        var result = await callAppsScript({action:'getData'});
+        if (result && result.values && result.values.length > 1) {
+          return result.values;
+        }
+        // Si vino vac?o esperar antes de reintentar
+        if (intento < 2) await new Promise(function(r){setTimeout(r, 2000);});
+      } catch(e) {
+        console.error('apiGet intento '+(intento+1)+' fallido:', e);
+        if (intento < 2) await new Promise(function(r){setTimeout(r, 2000);});
+      }
+    }
     return [];
   }
   const r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(range),
@@ -760,9 +772,18 @@ function iniciarApp() {
   });
   resetInactividad();
   setInterval(function(){ renovarToken(); }, 45 * 60 * 1000);
+  // Mostrar indicador mientras carga
+  var badge = document.getElementById('res-mes-badge');
+  if(badge) badge.textContent = 'Cargando...';
   cargarBD().then(function(){
     if(dbData.length===0){
-      setTimeout(function(){ cargarBD().then(function(){ cargarDashboard(); }); }, 2000);
+      // Si vino vac?o, reintentar despu?s de 3 segundos
+      if(badge) badge.textContent = 'Reintentando...';
+      setTimeout(function(){
+        cargarBD().then(function(){
+          cargarDashboard();
+        });
+      }, 3000);
     } else {
       cargarDashboard();
     }
