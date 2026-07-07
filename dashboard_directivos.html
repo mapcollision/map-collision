@@ -318,31 +318,43 @@ function filtrarMesAnterior(mes, anio, clasif) {
 }
 
 // CALCULOS
-function calcMetricas(rows) {
+function calcMetricas(rows, mes, anio) {
   var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var entregadas = rows.filter(function(r) {
-    return String(getField(r, IDX.statusTaller)).toLowerCase() === 'entregado';
+
+  // Entregadas: ordenes con fecha de entrega en el mes seleccionado
+  var entregadas = dbData.filter(function(r) {
+    if (!getField(r, IDX.noOrden)) return false;
+    var fe = parseDate(String(getField(r, IDX.fechaEntrega)));
+    return String(getField(r, IDX.statusTaller)).toLowerCase() === 'entregado'
+      && fe && fe.getMonth() === mes && fe.getFullYear() === anio;
   });
+
+  // En tiempo / retraso: todas las ordenes activas (no entregadas) + entregadas del mes
   var enTiempo = 0, conRetraso = 0;
   var totalDias = 0, countDias = 0;
-  rows.forEach(function(r) {
-    var fe = parseDate(String(getField(r, IDX.fechaEntregaCalc)));
-    if (!fe) return;
+
+  dbData.forEach(function(r) {
+    if (!getField(r, IDX.noOrden)) return;
     var st = String(getField(r, IDX.statusTaller)).toLowerCase();
-    if (st === 'entregado') {
-      var feReal = parseDate(String(getField(r, IDX.fechaEntrega)));
-      var fi = parseDate(String(getField(r, IDX.fechaIngreso)));
-      if (feReal && fi) {
-        totalDias += Math.round((feReal - fi) / 86400000);
-        countDias++;
-      }
-      if (feReal && feReal <= fe) enTiempo++;
-      else conRetraso++;
-    } else {
-      if (fe >= hoy) enTiempo++;
-      else conRetraso++;
+    if (st === 'entregado') return; // excluir entregados del conteo activo
+
+    var fe = parseDate(String(getField(r, IDX.fechaEntregaCalc)));
+    if (!fe || isNaN(fe.getTime())) return;
+    var diff = Math.round((fe - hoy) / 86400000);
+    if (diff < 0) conRetraso++;
+    else enTiempo++;
+  });
+
+  // Tiempo promedio: usando entregadas del mes
+  entregadas.forEach(function(r) {
+    var feReal = parseDate(String(getField(r, IDX.fechaEntrega)));
+    var fi = parseDate(String(getField(r, IDX.fechaIngreso)));
+    if (feReal && fi) {
+      totalDias += Math.round((feReal - fi) / 86400000);
+      countDias++;
     }
   });
+
   var promDias = countDias > 0 ? Math.round(totalDias / countDias) : 0;
   var cumplimiento = (enTiempo + conRetraso) > 0 ? Math.round(enTiempo / (enTiempo + conRetraso) * 100) : 0;
   return {nuevas: rows.length, entregadas: entregadas.length, enTiempo: enTiempo, conRetraso: conRetraso, promDias: promDias, cumplimiento: cumplimiento};
@@ -395,8 +407,8 @@ function renderDashboard() {
   var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var rows = filtrarDatos(filtroMes, filtroAnio, filtroClasif);
   var rowsAnt = filtrarMesAnterior(filtroMes, filtroAnio, filtroClasif);
-  var m = calcMetricas(rows);
-  var mAnt = calcMetricas(rowsAnt);
+  var m = calcMetricas(rows, filtroMes, filtroAnio);
+  var mAnt = calcMetricas(rowsAnt, filtroMes<=0?11:filtroMes-1, filtroMes<=0?filtroAnio-1:filtroAnio);
   var areas = calcAreaTiempos(rows);
 
   function comp(val, ant, menor) {
@@ -463,7 +475,7 @@ function renderDashboard() {
   // Acumulado anual metricas
   var rowsAnual=[];
   for(var mx=0;mx<=filtroMes;mx++){rowsAnual=rowsAnual.concat(filtrarDatos(mx,anioActual,''));}
-  var mAnual=calcMetricas(rowsAnual);
+  var mAnual=calcMetricas(rowsAnual, filtroMes, filtroAnio);
 
   // Total clasif para anillo
   var totalCl = countCl.reduce(function(a,b){return a+b;},0);
