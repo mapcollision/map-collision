@@ -662,6 +662,13 @@ function formatDateMX(d) {
   return dd+'/'+mm+'/'+yyyy;
 }
 
+function formatMXN(val) {
+  if (val === '' || val === null || val === undefined) return '';
+  var num = parseFloat(String(val).replace(/[$,\s]/g,''));
+  if (isNaN(num)) return val;
+  return '$' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 const IDX = {
   noOrden:0,asesor:1,valuador:2,fechaIngreso:3,deducible:4,tipoCliente:5,
   tipoUnidad:6,color:7,placas:8,fechaReingreso:9,observaciones:10,noSiniestro:11,
@@ -1094,16 +1101,21 @@ function abrirModal(noOrden) {
     ]},
     { titulo:'Valuacion', color:'#2B6CB0', campos:[
       ['Status Valuacion',getField(row,IDX.statusVal)],['Valuacion',getField(row,IDX.valuacion)],
-      ['Clasificacion',getField(row,IDX.clasificacion)],['No. Piezas',getField(row,IDX.noPiezas)],
-      ['Fecha Val. Final',getField(row,IDX.fechaValFinal)],['Fecha Presupuesto',getField(row,IDX.fechaPresup)],
-      ['Subtotal',getField(row,IDX.subtotal)],['Costo Meta',getField(row,IDX.costoMeta)],
-      ['Fecha Entrega Calc.',getField(row,IDX.fechaEntregaCalc)]
+      ['Complemento',getField(row,IDX.complemento)],['Clasificacion',getField(row,IDX.clasificacion)],
+      ['No. Piezas',getField(row,IDX.noPiezas)],['Fecha Presupuesto',getField(row,IDX.fechaPresup)],
+      ['Fecha Val. Final',getField(row,IDX.fechaValFinal)],['Monto Previo',formatMXN(getField(row,IDX.montoPrevio))],
+      ['MO Hojalatero',formatMXN(getField(row,IDX.moHojalatero))],['MO Mecanica',formatMXN(getField(row,IDX.moMecanica))],
+      ['MO Pintura',formatMXN(getField(row,IDX.moPintura))],['Materiales',formatMXN(getField(row,IDX.materiales))],
+      ['Refacciones Val.',formatMXN(getField(row,IDX.refaccionesV))],['Subtotal',formatMXN(getField(row,IDX.subtotal))],
+      ['Costo Meta',formatMXN(getField(row,IDX.costoMeta))],['Fecha Entrega Calc.',getField(row,IDX.fechaEntregaCalc)]
     ]},
     { titulo:'Refacciones', color:'#276749', campos:[
       ['Status Ref.',getField(row,IDX.statusRef)],['Fecha Ini Ref.',getField(row,IDX.fechaIniRef)],
       ['Fecha Fin Ref.',getField(row,IDX.fechaFinRef)],['Pedido INPART',getField(row,IDX.pedidoImpart)],
+      ['TOT Refacciones',getField(row,IDX.tot)],['Comentario Ref.',getField(row,IDX.comentarioRef)],
       ['Pz. Surtidas',getField(row,IDX.pzSurtidas)],['Pz. Salvadas',getField(row,IDX.pzSalvadas)],
-      ['Total Piezas',getField(row,IDX.totalPiezas)],['Comentario Ref.',getField(row,IDX.comentarioRef)]
+      ['Coment. Pz. Salvamento',getField(row,IDX.comentarioPzSalvamento)],
+      ['Total Piezas',getField(row,IDX.totalPiezas)]
     ]},
     { titulo:'Taller', color:'#553C9A', campos:[
       ['Ubicacion',getField(row,IDX.ubicacionUnidad)],['Inicio Rep.',getField(row,IDX.inicioRep)],
@@ -1395,7 +1407,7 @@ function calcValuacion() {
   const hoj=parseFloat(v('val-hoj'))||0,mec=parseFloat(v('val-mec'))||0,pint=parseFloat(v('val-pint'))||0,mat=parseFloat(v('val-mat'))||0,ref=parseFloat(v('val-ref'))||0;
   const piezas=parseInt(v('val-piezas'))||0,fechaFinal=v('val-fecha-final');
   const subtotal=hoj+mec+pint+mat+ref;
-  document.getElementById('val-subtotal').value=subtotal?'$'+subtotal.toLocaleString('es-MX',{minimumFractionDigits:2}):'';
+  document.getElementById('val-subtotal').value=subtotal?'$'+subtotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','):'';
   let clasif='';
   if(v('val-piezas')!==''){if(piezas===0)clasif='Express';else if(piezas<=3)clasif='Leve';else if(piezas<=10)clasif='Medio';else if(piezas<=20)clasif='Fuerte';else clasif='Severo';}
   document.getElementById('val-clasif').value=clasif;
@@ -1626,10 +1638,10 @@ function renderBusquedaCampos(row){
         else if(f.type==='currency'){
           var cleaned = String(val||'').split('$').join('').split(',').join('').split(' ').join('');
           var parsed = parseFloat(cleaned);
-          var displayVal = isNaN(parsed) ? '' : parsed;
+          var displayVal = isNaN(parsed) ? '' : parsed.toFixed(2);
           input='<div style="display:flex;align-items:center;border:1px solid #E2E8F0;border-radius:6px;overflow:hidden">'
             +'<span style="padding:9px 10px;background:#F7F8FA;color:#718096;font-size:13px;border-right:1px solid #E2E8F0">$</span>'
-            +'<input type="number" id="'+f.id+'" value="'+displayVal+'" style="border:none;border-radius:0;flex:1;padding:9px 12px">'
+            +'<input type="number" step="0.01" id="'+f.id+'" value="'+displayVal+'" style="border:none;border-radius:0;flex:1;padding:9px 12px">'
             +'</div>';
         }
         else{
@@ -1929,3 +1941,4 @@ function toast(msg,type){if(!type)type='';const el=document.getElementById('toas
 </script>
 </body>
 </html>
+
