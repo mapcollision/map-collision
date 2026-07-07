@@ -1607,7 +1607,11 @@ function renderBusquedaCampos(row){
   cont.innerHTML=campos.map(function(sec){
     var fieldsHtml = sec.fields.map(function(f){
         var rawVal=getField(row,f.idx);
-        var val=(rawVal===null||rawVal===undefined)?'':String(rawVal);
+        var val=(rawVal===null||rawVal===undefined)?'':String(rawVal).trim();
+        // Limpiar formato numerico que viene del Apps Script (ej: 0.8 -> 80%)
+        if(f.type==='select' && f.opts && val && !isNaN(parseFloat(val)) && parseFloat(val)<=1) {
+          val = Math.round(parseFloat(val)*100)+'%';
+        }
         var input='';
         if(f.type==='select'){
           var valLower=val.trim().toLowerCase();
