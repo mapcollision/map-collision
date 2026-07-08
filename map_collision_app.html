@@ -555,7 +555,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Pulido %</label><select id="tall-p-pul"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>T.O.T. %</label><select id="tall-p-tot"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>Trabajo Terminado</label><input type="date" id="tall-terminado"></div>
-              <div class="form-group"><label>Status</label><select id="tall-status"><option value="">—</option><option>Entregado</option><option>En transito</option><option>Vale</option></select></div>
+              <div class="form-group"><label>Status</label><select id="tall-status"><option value="">—</option><option>En transito</option><option>En reparacion</option><option>Vale</option><option>Entregado</option><option>Cancelado</option></select></div>
               <div class="form-group"><label>Fecha de Entrega</label><input type="date" id="tall-fecha-entrega"></div>
             </div>
             <div class="btn-group">
@@ -920,11 +920,11 @@ function clasificarOrden(row) {
     return val === '100%' || val === 'N/A' || val === '';
   }) && getField(row,IDX.inicioRep);
 
-  if (st === 'entregado') {
+  if (st === 'entregado' || st === 'cancelado') {
     var fechaEnt = parseDate(String(getField(row,IDX.fechaEntrega)||''));
     var hoyD = new Date(); hoyD.setHours(0,0,0,0);
-    if (fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
-    return null;
+    if (st === 'entregado' && fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
+    return null; // Cancelado y entregados de otros dias no aparecen en Dashboard
   }
   if (st === 'vale') return 'vale';
   // Si ya tiene piezas listas para taller, pasa a taller aunque diga "en transito"
@@ -932,6 +932,11 @@ function clasificarOrden(row) {
     if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
     if (getField(row,IDX.inicioRep)) return 'taller-pintura';
     return 'taller-hojalateria';
+  }
+  // En reparacion va directo a Taller
+  if (st === 'en reparacion') {
+    if (terminadoTaller) return 'terminado';
+    return 'taller-pintura';
   }
   // Solo queda en transito si NO tiene refacciones listas
   if (st === 'en transito') return 'transito';
@@ -1611,7 +1616,7 @@ function renderBusquedaCampos(row){
       {lbl:'% Pulido',id:'b-ppul',type:'select',idx:IDX.pPulido,opts:['25%','40%','50%','80%','100%','N/A']},
       {lbl:'% TOT',id:'b-ptot',type:'select',idx:IDX.pTot,opts:['25%','40%','50%','80%','100%','N/A']},
       {lbl:'Trabajo Terminado',id:'b-tterm',type:'date',idx:IDX.trabajoTerminado},
-      {lbl:'Status Taller',id:'b-stall',type:'select',idx:IDX.statusTaller,opts:['Entregado','En transito','Vale']},
+      {lbl:'Status Taller',id:'b-stall',type:'select',idx:IDX.statusTaller,opts:['En transito','En reparacion','Vale','Entregado','Cancelado']},
       {lbl:'Fecha de Entrega',id:'b-fentrega',type:'date',idx:IDX.fechaEntrega},
     ]}
   ];
