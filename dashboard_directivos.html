@@ -10,8 +10,6 @@
 :root{--naranja:#E8640A;--azul:#1A3A5C;--azul-medio:#2B6CB0;--verde:#276749;--rojo:#C53030;--amarillo:#D69E2E;--gris:#718096;--blanco:#fff;--fondo:#F7F8FA;--borde:#E2E8F0}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
 body{background:var(--fondo);color:#2D3748}
-
-/* LOGIN */
 #login-screen{position:fixed;inset:0;background:var(--azul);display:flex;align-items:center;justify-content:center;z-index:999}
 .login-card{background:var(--blanco);border-radius:16px;padding:48px 40px;text-align:center;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .login-logo{width:70px;height:70px;background:var(--naranja);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px}
@@ -19,26 +17,22 @@ body{background:var(--fondo);color:#2D3748}
 .login-sub{font-size:13px;color:var(--gris);margin-bottom:8px}
 .login-badge{background:#FDE8D8;color:var(--naranja);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:28px}
 .btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border:1px solid var(--borde);border-radius:8px;background:var(--blanco);cursor:pointer;font-size:14px;font-weight:600;color:#2D3748;transition:all .2s}
-.btn-google:hover{background:var(--fondo);border-color:var(--azul-medio)}
+.btn-google:hover{background:var(--fondo)}
 .btn-google img{width:20px}
 #login-error{color:var(--rojo);font-size:12px;margin-top:16px;display:none}
-
-/* APP */
 #app{display:none}
 .topbar{background:var(--azul);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
 .topbar-title{color:white;font-size:15px;font-weight:700}
 .topbar-title span{color:var(--naranja)}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:10px}
 .badge-acceso{background:rgba(232,100,10,.2);color:var(--naranja);font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid rgba(232,100,10,.4)}
 .user-name{color:#A0B4C8;font-size:13px}
-.btn-logout{background:rgba(255,255,255,.1);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer}
-
+.btn-top{color:white;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
 .filtros{background:var(--blanco);border-bottom:1px solid var(--borde);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .filtros label{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase}
 .filtros select{border:1px solid var(--borde);border-radius:6px;padding:7px 12px;font-size:13px;color:#2D3748;background:var(--blanco)}
 .btn-filtrar{background:var(--naranja);color:white;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
 .btn-anual{background:var(--azul);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
-
 .main{padding:20px 24px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .kpi{background:var(--blanco);border-radius:8px;border:1px solid var(--borde);padding:14px 16px;border-left:4px solid var(--naranja)}
@@ -48,11 +42,6 @@ body{background:var(--fondo);color:#2D3748}
 .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gris);margin-bottom:4px}
 .kpi-value{font-size:28px;font-weight:800;color:#2D3748;line-height:1}
 .kpi-sub{font-size:10px;color:var(--gris);margin-top:3px}
-.kpi-comp{font-size:10px;margin-top:4px;font-weight:600}
-.comp-up{color:var(--verde)}
-.comp-down{color:var(--rojo)}
-.comp-neutral{color:var(--gris)}
-
 .section-title{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gris);margin:16px 0 10px;border-bottom:2px solid var(--naranja);padding-bottom:4px;display:inline-block}
 .areas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .area-card{background:var(--blanco);border-radius:8px;border:1px solid var(--borde);padding:16px;display:flex;align-items:center;gap:14px}
@@ -61,19 +50,14 @@ body{background:var(--fondo);color:#2D3748}
 .area-nombre{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;margin-bottom:3px}
 .area-dias{font-size:24px;font-weight:800;line-height:1}
 .area-sub{font-size:9px;color:var(--gris);margin-top:2px}
-.area-bar-wrap{height:5px;background:var(--borde);border-radius:3px;margin-top:8px}
-.area-bar-fill{height:5px;border-radius:3px}
-
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .chart-card{background:var(--blanco);border-radius:8px;border:1px solid var(--borde);padding:16px}
 .chart-card h4{font-size:12px;font-weight:700;color:var(--azul);margin-bottom:12px}
-
 .loading{text-align:center;padding:60px;color:var(--gris);font-size:14px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">&#128664;</div>
@@ -81,27 +65,27 @@ body{background:var(--fondo);color:#2D3748}
     <div class="login-sub">Dashboard Directivos</div>
     <div class="login-badge">Acceso Restringido</div>
     <button class="btn-google" onclick="iniciarSesion()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
       Acceder con Google
     </button>
-    <div id="login-error">Acceso denegado. Tu cuenta no tiene permiso para ver este Dashboard.</div>
+    <div id="login-error"></div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-title"><span>MAP</span> COLLISION CENTER &mdash; Dashboard Directivos</div>
     <div class="topbar-right">
       <span class="badge-acceso">Acceso Restringido</span>
-      <span class="user-name" id="user-name">Cargando...</span>
-      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+      <span class="user-name" id="user-name"></span>
+      <button class="btn-top" style="background:var(--naranja)" onclick="cargarDatos()">&#8635; Actualizar</button>
+      <button class="btn-top" style="background:rgba(255,255,255,.1)" onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
 
   <div class="filtros">
     <label>Periodo:</label>
-    <select id="f-mes"><option value="">Cargando...</option></select>
+    <select id="f-mes"></select>
     <label>Clasificacion:</label>
     <select id="f-clasif">
       <option value="">Todas</option>
@@ -123,22 +107,12 @@ var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3yhvE4kUNXf0CTE
 var SHEET_ID = '1T_XuXIOAygibq396oM2XOC_JDReN0sGj5nwJ-gUs-lE';
 var CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleusercontent.com';
 var SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+var CORREOS = ['cooper.rob.six@gmail.com','adriana.nafarrate.map@gmail.com','michelforsythmap@gmail.com'];
 
-var CORREOS_PERMITIDOS = [
-  'cooper.rob.six@gmail.com',
-  'adriana.nafarrate.map@gmail.com',
-  'michelforsythmap@gmail.com'
-];
-
-var accessToken = null;
-var tokenClient = null;
-var dbData = [];
-var usuarioActual = '';
-var filtroMes = null;
-var filtroAnio = null;
-var filtroClasif = '';
+var accessToken = null, tokenClient = null;
+var dbData = [], usuarioActual = '';
+var filtroMes = null, filtroAnio = null, filtroClasif = '';
 var mostrandoAnual = false;
-
 var chartInstances = {};
 
 var IDX = {
@@ -163,21 +137,27 @@ function parseDate(str) {
   if (s.includes('/')) {
     var p = s.split('/');
     if (p.length === 3) {
-      var a = parseInt(p[0]), b = parseInt(p[1]), c = parseInt(p[2]);
-      if (c > 1900) return new Date(c, b-1, a);
-      if (a > 1900) return new Date(a, b-1, c);
+      var a=parseInt(p[0]),b=parseInt(p[1]),c=parseInt(p[2]);
+      if (c > 1900) return new Date(c,b-1,a);
+      if (a > 1900) return new Date(a,b-1,c);
     }
   }
   if (s.includes('-') && s.length === 10) {
     var pp = s.split('-');
-    return new Date(parseInt(pp[0]), parseInt(pp[1])-1, parseInt(pp[2]));
+    return new Date(parseInt(pp[0]),parseInt(pp[1])-1,parseInt(pp[2]));
   }
   return null;
 }
 
-function getField(row, idx) {
+function getF(row, idx) {
   if (!row || idx >= row.length) return '';
-  return row[idx] !== null && row[idx] !== undefined ? row[idx] : '';
+  var v = row[idx];
+  return (v === null || v === undefined) ? '' : v;
+}
+
+function avg(arr) {
+  if (!arr.length) return 'N/A';
+  return (arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1);
 }
 
 // LOGIN
@@ -191,32 +171,33 @@ function iniciarSesion() {
       verificarAcceso();
     }
   });
-  tokenClient.requestAccessToken({prompt: 'select_account'});
+  tokenClient.requestAccessToken({prompt:'select_account'});
 }
 
 function verificarAcceso() {
-  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: {Authorization: 'Bearer ' + accessToken}
-  }).then(function(r){return r.json();})
-    .then(function(info) {
-      var email = (info.email || '').toLowerCase();
-      if (CORREOS_PERMITIDOS.indexOf(email) < 0) {
-        mostrarError('Acceso denegado. Tu cuenta (' + email + ') no tiene permiso.');
-        accessToken = null;
-        return;
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}})
+    .then(function(r){return r.json();})
+    .then(function(info){
+      var email = (info.email||'').toLowerCase().trim();
+      if (CORREOS.indexOf(email) < 0) {
+        mostrarError('Acceso denegado. Tu cuenta ('+email+') no tiene permiso.');
+        accessToken = null; return;
       }
       usuarioActual = info.name || info.email;
       document.getElementById('user-name').textContent = usuarioActual;
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       cargarDatos();
-    }).catch(function() { mostrarError('Error verificando cuenta'); });
+    }).catch(function(){ mostrarError('Error verificando cuenta. Intenta de nuevo.'); });
 }
 
 function mostrarError(msg) {
   var el = document.getElementById('login-error');
   el.textContent = msg;
   el.style.display = 'block';
+  el.style.color = '#C53030';
+  el.style.marginTop = '16px';
+  el.style.fontSize = '12px';
 }
 
 function cerrarSesion() {
@@ -230,52 +211,50 @@ function cerrarSesion() {
 async function cargarDatos() {
   document.getElementById('main-content').innerHTML = '<div class="loading">Cargando datos...</div>';
   try {
-    var rows;
+    var rows = [];
     if (APPS_SCRIPT_URL) {
       var r = await fetch(APPS_SCRIPT_URL + '?action=getData');
       var result = await r.json();
       rows = result.values || [];
     } else {
-      var r = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/Base%20de%20Datos!A:BF',
-        {headers: {Authorization: 'Bearer ' + accessToken}});
-      rows = (await r.json()).values || [];
+      var r2 = await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/\'Base%20de%20Datos\'!A:BF',
+        {headers:{Authorization:'Bearer '+accessToken}});
+      rows = (await r2.json()).values || [];
     }
     if (rows.length > 1) {
-      dbData = rows.slice(1).map(function(row) {
-        while (row.length < 57) row.push('');
+      dbData = rows.slice(1).map(function(row){
+        while(row.length < 57) row.push('');
         return row;
       });
     }
     poblarFiltroMes();
     renderDashboard();
   } catch(e) {
-    document.getElementById('main-content').innerHTML = '<div class="loading">Error cargando datos. Intenta de nuevo.</div>';
+    document.getElementById('main-content').innerHTML = '<div class="loading">Error cargando datos: '+e.message+'</div>';
   }
 }
 
 function poblarFiltroMes() {
   var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var vistos = {};
-  dbData.forEach(function(r) {
-    var fi = parseDate(String(getField(r, IDX.fechaIngreso)));
+  dbData.forEach(function(r){
+    var fi = parseDate(String(getF(r,IDX.fechaIngreso)));
     if (fi) {
-      var key = fi.getFullYear() + '-' + fi.getMonth();
-      vistos[key] = {anio: fi.getFullYear(), mes: fi.getMonth(), label: meses[fi.getMonth()] + ' ' + fi.getFullYear()};
+      var k = fi.getFullYear()+'-'+fi.getMonth();
+      vistos[k] = {anio:fi.getFullYear(),mes:fi.getMonth(),label:meses[fi.getMonth()]+' '+fi.getFullYear()};
     }
   });
   var keys = Object.keys(vistos).sort().reverse();
   var sel = document.getElementById('f-mes');
   sel.innerHTML = '';
-  keys.forEach(function(k) {
+  keys.forEach(function(k){
     var o = document.createElement('option');
-    o.value = k;
-    o.textContent = vistos[k].label;
+    o.value = k; o.textContent = vistos[k].label;
     sel.appendChild(o);
   });
   if (keys.length > 0) {
-    var first = vistos[keys[0]];
-    filtroMes = first.mes;
-    filtroAnio = first.anio;
+    filtroMes = vistos[keys[0]].mes;
+    filtroAnio = vistos[keys[0]].anio;
   }
 }
 
@@ -294,96 +273,26 @@ function toggleAnual() {
   mostrandoAnual = !mostrandoAnual;
   var btn = document.getElementById('btn-anual');
   btn.textContent = mostrandoAnual ? 'Ocultar Acumulado Anual' : 'Ver Acumulado Anual';
-  btn.style.background = mostrandoAnual ? 'var(--rojo)' : 'var(--azul)';
+  btn.style.background = mostrandoAnual ? '#C53030' : 'var(--azul)';
   renderDashboard();
 }
 
-// FILTRAR DATOS
-function filtrarDatos(mes, anio, clasif) {
-  return dbData.filter(function(r) {
-    if (!getField(r, IDX.noOrden)) return false;
-    var fi = parseDate(String(getField(r, IDX.fechaIngreso)));
-    if (!fi) return false;
-    if (fi.getMonth() !== mes || fi.getFullYear() !== anio) return false;
-    if (clasif && clasif !== '' && getField(r, IDX.clasificacion) !== clasif) return false;
-    return true;
-  });
+function mkChart(id, config) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+  var el = document.getElementById(id);
+  if (el) chartInstances[id] = new Chart(el, config);
 }
 
-
-
-// CALCULOS
-function calcMetricas(mes, anio) {
-  var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var listoTaller = ['unidad completa','mo','pend. ref. taller puede avanzar'];
-
-  // Nuevas: fecha ingreso en el mes
-  var nuevas = dbData.filter(function(r) {
-    if (!getField(r, IDX.noOrden)) return false;
-    var fi = parseDate(String(getField(r, IDX.fechaIngreso)||''));
-    return fi && fi.getMonth()===mes && fi.getFullYear()===anio;
-  });
-
-  // Entregadas: status entregado + fecha entrega en el mes
-  var entregadas = dbData.filter(function(r) {
-    if (!getField(r, IDX.noOrden)) return false;
-    var fe = parseDate(String(getField(r, IDX.fechaEntrega)||''));
-    return String(getField(r, IDX.statusTaller)||'').toLowerCase()==='entregado'
-      && fe && fe.getMonth()===mes && fe.getFullYear()===anio;
-  });
-
-  // En tiempo / retraso: todas las ordenes activas no entregadas
-  var enTiempo = 0, conRetraso = 0;
-  dbData.forEach(function(r) {
-    if (!getField(r, IDX.noOrden)) return;
-    if (String(getField(r, IDX.statusTaller)||'').toLowerCase()==='entregado') return;
-    var fe = parseDate(String(getField(r, IDX.fechaEntregaCalc)||''));
-    if (!fe || isNaN(fe.getTime())) return;
-    var diff = Math.round((fe - hoy) / 86400000);
-    if (diff < 0) conRetraso++;
-    else enTiempo++;
-  });
-
-  // Tiempo promedio usando entregadas del mes
-  var totalDias = 0, countDias = 0;
-  entregadas.forEach(function(r) {
-    var feReal = parseDate(String(getField(r, IDX.fechaEntrega)||''));
-    var fi = parseDate(String(getField(r, IDX.fechaIngreso)||''));
-    if (feReal && fi) { totalDias += Math.round((feReal-fi)/86400000); countDias++; }
-  });
-
-  var promDias = countDias > 0 ? Math.round(totalDias/countDias) : 0;
-  var cumplimiento = (enTiempo+conRetraso) > 0 ? Math.round(enTiempo/(enTiempo+conRetraso)*100) : 0;
-  return {nuevas:nuevas.length, entregadas:entregadas.length, enTiempo:enTiempo, conRetraso:conRetraso, promDias:promDias, cumplimiento:cumplimiento};
-}
-
-function calcAreaTiempos(rows) {
-  var valDias = [], refDias = [], tallDias = [];
-  rows.forEach(function(r) {
-    var fi = parseDate(String(getField(r, IDX.fechaIngreso)));
-    var fvf = parseDate(String(getField(r, IDX.fechaValFinal)));
-    var fir = parseDate(String(getField(r, IDX.fechaIniRef)));
-    var ffr = parseDate(String(getField(r, IDX.fechaFinRef)));
-    var fe = parseDate(String(getField(r, IDX.fechaEntrega)));
-    if (fi && fvf) valDias.push(Math.round((fvf - fi) / 86400000));
-    if (fir && ffr) refDias.push(Math.round((ffr - fir) / 86400000));
-    if (ffr && fe) tallDias.push(Math.round((fe - ffr) / 86400000));
-  });
-  function avg(arr) { return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1) : 'N/A'; }
-  return {val: avg(valDias), ref: avg(refDias), tall: avg(tallDias)};
-}
-
-// BARRAS PLUGIN
 var barLabel = {
   id:'barLabel',
   afterDatasetsDraw:function(chart){
     var ctx=chart.ctx;
     chart.data.datasets.forEach(function(ds,i){
       chart.getDatasetMeta(i).data.forEach(function(bar,j){
-        var val=ds.data[j];if(!val)return;
-        ctx.save();ctx.fillStyle='#2D3748';ctx.font='bold 9px Segoe UI';
-        ctx.textAlign='center';ctx.textBaseline='bottom';
-        ctx.fillText(val,bar.x,bar.y-2);ctx.restore();
+        var val=ds.data[j]; if(!val) return;
+        ctx.save(); ctx.fillStyle='#2D3748'; ctx.font='bold 9px Segoe UI';
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(val,bar.x,bar.y-2); ctx.restore();
       });
     });
   }
@@ -392,108 +301,193 @@ var barLabel = {
 var legOpts = {position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}};
 var scOpts = {x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}}}};
 
-function mkChart(id, config) {
-  if (chartInstances[id]) { chartInstances[id].destroy(); }
-  var el = document.getElementById(id);
-  if (el) chartInstances[id] = new Chart(el, config);
-}
-
-// RENDER PRINCIPAL
 function renderDashboard() {
   if (filtroMes === null) return;
   var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var rows = filtrarDatos(filtroMes, filtroAnio, filtroClasif);
-  var m = calcMetricas(filtroMes, filtroAnio);
-  var areas = calcAreaTiempos(rows);
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var clasifs = ['Express','Leve','Medio','Fuerte','Severo'];
 
+  // Filtrar ordenes del mes por fecha ingreso
+  var rowsMes = dbData.filter(function(r){
+    if (!getF(r,IDX.noOrden)) return false;
+    var fi = parseDate(String(getF(r,IDX.fechaIngreso)));
+    if (!fi || fi.getMonth()!==filtroMes || fi.getFullYear()!==filtroAnio) return false;
+    if (filtroClasif && getF(r,IDX.clasificacion)!==filtroClasif) return false;
+    return true;
+  });
 
+  // Entregadas del mes por fecha entrega
+  var entregadasMes = dbData.filter(function(r){
+    if (!getF(r,IDX.noOrden)) return false;
+    var fe = parseDate(String(getF(r,IDX.fechaEntrega)));
+    var st = String(getF(r,IDX.statusTaller)||'').toLowerCase();
+    return (st==='entregado') && fe && fe.getMonth()===filtroMes && fe.getFullYear()===filtroAnio;
+  });
+
+  // En tiempo / retraso — TODAS las activas
+  var enTiempo=0, conRetraso=0;
+  dbData.forEach(function(r){
+    if (!getF(r,IDX.noOrden)) return;
+    var st = String(getF(r,IDX.statusTaller)||'').toLowerCase();
+    if (st==='entregado'||st==='cancelado') return;
+    var fe = parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
+    if (!fe||isNaN(fe.getTime())) return;
+    if (Math.round((fe-hoy)/86400000)<0) conRetraso++;
+    else enTiempo++;
+  });
+
+  // Tiempo promedio entrega
+  var diasArr=[];
+  entregadasMes.forEach(function(r){
+    var fe=parseDate(String(getF(r,IDX.fechaEntrega)));
+    var fi=parseDate(String(getF(r,IDX.fechaIngreso)));
+    if(fe&&fi) diasArr.push(Math.round((fe-fi)/86400000));
+  });
+  var promDias = diasArr.length ? Math.round(diasArr.reduce(function(a,b){return a+b;},0)/diasArr.length) : 0;
+  var cumplimiento = (enTiempo+conRetraso)>0 ? Math.round(enTiempo/(enTiempo+conRetraso)*100) : 0;
+
+  // Tiempos por area — usando TODAS las ordenes con datos suficientes
+  var valArr=[], refArr=[], tallArr=[];
+  dbData.forEach(function(r){
+    var fi=parseDate(String(getF(r,IDX.fechaIngreso)));
+    var fvf=parseDate(String(getF(r,IDX.fechaValFinal)));
+    var fir=parseDate(String(getF(r,IDX.fechaIniRef)));
+    var ffr=parseDate(String(getF(r,IDX.fechaFinRef)));
+    var fe=parseDate(String(getF(r,IDX.fechaEntrega)));
+    if(fi&&fvf&&fvf>fi) valArr.push(Math.round((fvf-fi)/86400000));
+    if(fir&&ffr&&ffr>fir) refArr.push(Math.round((ffr-fir)/86400000));
+    if(ffr&&fe&&fe>ffr) tallArr.push(Math.round((fe-ffr)/86400000));
+  });
+
+  // Por clasificacion - conteo
+  var countCl=[], etCl=[], crCl=[];
+  clasifs.forEach(function(cl){
+    var sub=dbData.filter(function(r){
+      if(!getF(r,IDX.noOrden))return false;
+      if(filtroClasif && cl!==filtroClasif)return false;
+      return getF(r,IDX.clasificacion)===cl;
+    });
+    countCl.push(sub.length);
+    var et=0,cr=0;
+    sub.forEach(function(r){
+      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+      if(st==='entregado'||st==='cancelado')return;
+      var fe=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
+      if(!fe)return;
+      if(Math.round((fe-hoy)/86400000)<0)cr++;else et++;
+    });
+    etCl.push(et); crCl.push(cr);
+  });
+
+  // % por clasificacion para anillo
+  var totalCl=countCl.reduce(function(a,b){return a+b;},0);
+  var pctsCl=countCl.map(function(c){return totalCl>0?Math.round(c/totalCl*100):0;});
+
+  // % en tiempo vs retraso por clasificacion
+  var pctEtCl=[], pctCrCl=[];
+  clasifs.forEach(function(cl,i){
+    var tot=etCl[i]+crCl[i];
+    pctEtCl.push(tot>0?Math.round(etCl[i]/tot*100):0);
+    pctCrCl.push(tot>0?Math.round(crCl[i]/tot*100):0);
+  });
 
   // Semanas del mes
-  var semanas = [], semNuevas = [], semEntregadas = [];
-  var primerDia = new Date(filtroAnio, filtroMes, 1);
-  var ultimoDia = new Date(filtroAnio, filtroMes+1, 0);
-  var sStart = new Date(primerDia);
-  var sNum = 1;
-  while (sStart <= ultimoDia) {
-    var sEnd = new Date(sStart); sEnd.setDate(sStart.getDate()+6);
-    if (sEnd > ultimoDia) sEnd = new Date(ultimoDia);
-    semanas.push('Sem '+sNum+' ('+sStart.getDate()+'-'+sEnd.getDate()+')');
-    var nv=0, en=0;
-    rows.forEach(function(r){
-      var fi=parseDate(String(getField(r,IDX.fechaIngreso)));
-      if(fi&&fi>=sStart&&fi<=sEnd)nv++;
-      var fe=parseDate(String(getField(r,IDX.fechaEntrega)));
-      if(fe&&fe>=sStart&&fe<=sEnd)en++;
+  var semLabels=[], semNuevas=[], semEntregadas=[];
+  var pDia=new Date(filtroAnio,filtroMes,1), uDia=new Date(filtroAnio,filtroMes+1,0);
+  var sStart=new Date(pDia), sNum=1;
+  while(sStart<=uDia){
+    var sEnd=new Date(sStart); sEnd.setDate(sStart.getDate()+6);
+    if(sEnd>uDia) sEnd=new Date(uDia);
+    semLabels.push('Sem '+sNum+' ('+sStart.getDate()+'-'+sEnd.getDate()+')');
+    var nv=0,en=0;
+    dbData.forEach(function(r){
+      var fi=parseDate(String(getF(r,IDX.fechaIngreso)));
+      if(fi&&fi>=sStart&&fi<=sEnd) nv++;
+      var fe=parseDate(String(getF(r,IDX.fechaEntrega)));
+      if(fe&&fe>=sStart&&fe<=sEnd) en++;
     });
     semNuevas.push(nv); semEntregadas.push(en);
     sStart.setDate(sStart.getDate()+7); sNum++;
   }
 
-  // Por clasificacion
-  var clasifs = ['Express','Leve','Medio','Fuerte','Severo'];
-  var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var enTiempoCl = [], conRetrasoCl = [], countCl = [];
-  clasifs.forEach(function(cl) {
-    var sub = rows.filter(function(r){return getField(r,IDX.clasificacion)===cl;});
-    countCl.push(sub.length);
-    var et=0,cr=0;
-    sub.forEach(function(r){
-      var fe=parseDate(String(getField(r,IDX.fechaEntregaCalc)));
-      if(!fe)return;
-      var st=String(getField(r,IDX.statusTaller)).toLowerCase();
-      if(st==='entregado'){var feR=parseDate(String(getField(r,IDX.fechaEntrega)));if(feR&&feR<=fe)et++;else cr++;}
-      else{if(fe>=hoy)et++;else cr++;}
-    });
-    enTiempoCl.push(et); conRetrasoCl.push(cr);
+  // Conteo por tipo cliente (valuacion field)
+  var gnp=0, part=0, cancelados=0;
+  dbData.forEach(function(r){
+    if(!getF(r,IDX.noOrden))return;
+    var val=String(getF(r,IDX.valuacion)||'').toLowerCase();
+    var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+    if(st==='cancelado') cancelados++;
+    else if(val==='gnp') gnp++;
+    else if(val==='particular') part++;
   });
+  var totVal=gnp+part+cancelados;
+  var pctGnp=totVal>0?Math.round(gnp/totVal*100):0;
+  var pctPart=totVal>0?Math.round(part/totVal*100):0;
+  var pctCan=totVal>0?Math.round(cancelados/totVal*100):0;
 
   // Anual
-  var anioActual = filtroAnio;
   var anualLabels=[], anualNuevas=[], anualEntregadas=[];
-  for(var m2=0;m2<=filtroMes;m2++){
-    anualLabels.push(meses[m2].substring(0,3));
-    var rAnual=filtrarDatos(m2,anioActual,filtroClasif);
-    anualNuevas.push(rAnual.length);
-    anualEntregadas.push(rAnual.filter(function(r){return String(getField(r,IDX.statusTaller)).toLowerCase()==='entregado';}).length);
+  var totAnualNuevas=0, totAnualEntregadas=0;
+  for(var mx=0;mx<=filtroMes;mx++){
+    anualLabels.push(meses[mx].substring(0,3));
+    var rN=dbData.filter(function(r){var fi=parseDate(String(getF(r,IDX.fechaIngreso)));return fi&&fi.getMonth()===mx&&fi.getFullYear()===filtroAnio;}).length;
+    var rE=dbData.filter(function(r){var fe=parseDate(String(getF(r,IDX.fechaEntrega)));return String(getF(r,IDX.statusTaller)||'').toLowerCase()==='entregado'&&fe&&fe.getMonth()===mx&&fe.getFullYear()===filtroAnio;}).length;
+    anualNuevas.push(rN); anualEntregadas.push(rE);
+    totAnualNuevas+=rN; totAnualEntregadas+=rE;
   }
-  var totAnualNuevas=anualNuevas.reduce(function(a,b){return a+b;},0);
-  var totAnualEntregadas=anualEntregadas.reduce(function(a,b){return a+b;},0);
 
-  // Acumulado anual metricas
-  var rowsAnual=[];
-  for(var mx=0;mx<=filtroMes;mx++){rowsAnual=rowsAnual.concat(filtrarDatos(mx,anioActual,''));}
-  var mAnual=calcMetricas(filtroMes, filtroAnio);
+  var pctT=enTiempo+conRetraso>0?Math.round(enTiempo/(enTiempo+conRetraso)*100):0;
+  var pctR=100-pctT;
 
-  // Total clasif para anillo
-  var totalCl = countCl.reduce(function(a,b){return a+b;},0);
-  var pcts = countCl.map(function(c){return totalCl>0?Math.round(c/totalCl*100):0;});
-
-  // Anillo en tiempo vs retraso
-  var pctT = m.enTiempo+m.conRetraso>0 ? Math.round(m.enTiempo/(m.enTiempo+m.conRetraso)*100) : 0;
-  var pctR = 100-pctT;
-
-  // Barras areas
-  var areaMax = Math.max(parseFloat(areas.val)||0, parseFloat(areas.ref)||0, parseFloat(areas.tall)||0);
-
+  // RENDER HTML
   document.getElementById('main-content').innerHTML =
-    ''
-        '<div class="kpis">'+
-      '<div class="kpi"><div class="kpi-label">Ordenes Nuevas</div><div class="kpi-value">'+m.nuevas+'</div><div class="kpi-sub">'+meses[filtroMes]+' '+filtroAnio+'</div></div>'+
-      '<div class="kpi verde"><div class="kpi-label">Entregadas</div><div class="kpi-value">'+m.entregadas+'</div><div class="kpi-sub">'+(m.nuevas>0?Math.round(m.entregadas/m.nuevas*100):0)+'% de las nuevas</div></div>'+
-      '<div class="kpi azul"><div class="kpi-label">Tiempo Prom. Entrega</div><div class="kpi-value">'+m.promDias+'d</div><div class="kpi-sub">Meta: 20 dias</div></div>'+
-      '<div class="kpi amarillo"><div class="kpi-label">Cumplimiento Fechas</div><div class="kpi-value">'+m.cumplimiento+'%</div><div class="kpi-sub">Meta: 85%</div></div>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="kpi-label">Ordenes Nuevas</div><div class="kpi-value">'+rowsMes.length+'</div><div class="kpi-sub">'+meses[filtroMes]+' '+filtroAnio+'</div></div>'+
+      '<div class="kpi verde"><div class="kpi-label">Entregadas</div><div class="kpi-value">'+entregadasMes.length+'</div><div class="kpi-sub">'+(rowsMes.length>0?Math.round(entregadasMes.length/rowsMes.length*100):0)+'% de las nuevas</div></div>'+
+      '<div class="kpi azul"><div class="kpi-label">Tiempo Prom. Entrega</div><div class="kpi-value">'+promDias+'d</div><div class="kpi-sub">Meta: 20 dias</div></div>'+
+      '<div class="kpi amarillo"><div class="kpi-label">Cumplimiento Fechas</div><div class="kpi-value">'+cumplimiento+'%</div><div class="kpi-sub">Meta: 85%</div></div>'+
+    '</div>'+
+
+    (mostrandoAnual?
+      '<div style="margin-bottom:20px">'+
+      '<div class="section-title">Acumulado Anual '+filtroAnio+'</div>'+
+      '<div class="kpis">'+
+        '<div class="kpi"><div class="kpi-label">Total Ordenes</div><div class="kpi-value">'+totAnualNuevas+'</div><div class="kpi-sub">Ene - '+meses[filtroMes]+' '+filtroAnio+'</div></div>'+
+        '<div class="kpi verde"><div class="kpi-label">Total Entregadas</div><div class="kpi-value">'+totAnualEntregadas+'</div><div class="kpi-sub">'+(totAnualNuevas>0?Math.round(totAnualEntregadas/totAnualNuevas*100):0)+'% del total</div></div>'+
+        '<div class="kpi azul"><div class="kpi-label">En Tiempo (activas)</div><div class="kpi-value">'+enTiempo+'</div><div class="kpi-sub">Ordenes activas</div></div>'+
+        '<div class="kpi amarillo"><div class="kpi-label">Cumplimiento Anual</div><div class="kpi-value">'+cumplimiento+'%</div><div class="kpi-sub">Meta: 85%</div></div>'+
+      '</div>'+
+      '<div class="chart-card" style="margin-bottom:16px"><h4>Ordenes Nuevas vs Entregadas — Acumulado '+filtroAnio+'</h4><canvas id="c-anual" style="max-height:160px"></canvas></div>'+
+      '</div>'
+    :'')+
+
+    '<div class="section-title">Tiempo Promedio por Area</div>'+
+    '<div class="areas-grid">'+
+      '<div class="area-card"><div class="area-icon" style="background:#FDE8D8">&#128203;</div><div class="area-info"><div class="area-nombre">Valuacion</div><div class="area-dias" style="color:var(--amarillo)">'+avg(valArr)+' dias</div><div class="area-sub">Desde fecha ingreso hasta fecha val. final</div></div></div>'+
+      '<div class="area-card"><div class="area-icon" style="background:#EBF4FF">&#128295;</div><div class="area-info"><div class="area-nombre">Refacciones</div><div class="area-dias" style="color:var(--rojo)">'+avg(refArr)+' dias</div><div class="area-sub">Desde fecha ini. ref. hasta fecha fin ref.</div></div></div>'+
+      '<div class="area-card"><div class="area-icon" style="background:#F0FFF4">&#127981;</div><div class="area-info"><div class="area-nombre">Taller (promedio)</div><div class="area-dias" style="color:var(--azul-medio)">'+avg(tallArr)+' dias</div><div class="area-sub">Desde fecha fin ref. hasta fecha de entrega</div></div></div>'+
     '</div>'+
 
     '<div class="charts-row">'+
-      '<div class="chart-card"><h4>Ordenes Nuevas vs Entregadas por Semana</h4><canvas id="c1" style="max-height:180px"></canvas></div>'+
-      '<div class="chart-card"><h4>En Tiempo vs Con Retraso por Clasificacion</h4><canvas id="c2" style="max-height:180px"></canvas></div>'+
+      '<div class="chart-card"><h4>En Tiempo vs Fuera de Tiempo (ordenes activas)</h4><canvas id="c1" style="max-height:200px"></canvas></div>'+
+      '<div class="chart-card"><h4>Conteo de Siniestros por Clasificacion</h4><canvas id="c2" style="max-height:200px"></canvas></div>'+
     '</div>'+
     '<div class="charts-row">'+
-      '<div class="chart-card"><h4>Distribucion por Clasificacion</h4><canvas id="c3" style="max-height:200px"></canvas></div>'+
-      '<div class="chart-card"><h4>Ordenes en Tiempo vs Con Retraso</h4><canvas id="c4" style="max-height:200px"></canvas></div>'+
+      '<div class="chart-card"><h4>En Tiempo vs Fuera de Tiempo por Clasificacion (%)</h4><canvas id="c3" style="max-height:200px"></canvas></div>'+
+      '<div class="chart-card"><h4>Entradas vs Entregados por Semana — '+meses[filtroMes]+' '+filtroAnio+'</h4><canvas id="c4" style="max-height:200px"></canvas></div>'+
+    '</div>'+
+    '<div class="charts-row">'+
+      '<div class="chart-card"><h4>Conteo por Tipo — GNP, Particular y Cancelados</h4><canvas id="c5" style="max-height:200px"></canvas></div>'+
+      '<div class="chart-card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">'+
+        '<div style="font-size:11px;color:var(--gris);font-weight:700;text-transform:uppercase;margin-bottom:8px">Resumen Activas</div>'+
+        '<div style="font-size:48px;font-weight:800;color:var(--verde)">'+enTiempo+'</div>'+
+        '<div style="font-size:12px;color:var(--verde);font-weight:600">En Tiempo</div>'+
+        '<div style="font-size:36px;font-weight:800;color:var(--rojo);margin-top:12px">'+conRetraso+'</div>'+
+        '<div style="font-size:12px;color:var(--rojo);font-weight:600">Fuera de Tiempo</div>'+
+      '</div>'+
     '</div>';
 
-  // Renderizar charts
+  // GRAFICAS
   if (mostrandoAnual) {
     mkChart('c-anual',{type:'bar',plugins:[barLabel],
       data:{labels:anualLabels,datasets:[
@@ -504,36 +498,55 @@ function renderDashboard() {
     });
   }
 
-  mkChart('c1',{type:'bar',plugins:[barLabel],
-    data:{labels:semanas,datasets:[
+  // Anillo en tiempo vs fuera
+  mkChart('c1',{type:'doughnut',
+    data:{labels:['En Tiempo ('+pctT+'%)','Fuera de Tiempo ('+pctR+'%)'],
+      datasets:[{data:[enTiempo,conRetraso],backgroundColor:['#276749','#C53030'],borderWidth:3,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8,boxWidth:12}}},cutout:'60%'}
+  });
+
+  // Barras siniestros por clasificacion
+  mkChart('c2',{type:'bar',plugins:[barLabel],
+    data:{labels:clasifs.map(function(c,i){return c+' ('+pctsCl[i]+'%)'}),
+      datasets:[{label:'Siniestros',data:countCl,
+        backgroundColor:['#276749','#2B6CB0','#E8640A','#D69E2E','#C53030'],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false}},scales:scOpts}
+  });
+
+  // Barras % en tiempo vs fuera por clasificacion
+  mkChart('c3',{type:'bar',
+    data:{labels:clasifs,datasets:[
+      {label:'En Tiempo %',data:pctEtCl,backgroundColor:'#276749',borderRadius:3},
+      {label:'Fuera de Tiempo %',data:pctCrCl,backgroundColor:'#C53030',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:legOpts,tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.raw+'%';}}}},
+      scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,max:100,ticks:{font:{size:9},callback:function(v){return v+'%';}}}}}
+  });
+
+  // Barras semana nuevas vs entregadas
+  mkChart('c4',{type:'bar',plugins:[barLabel],
+    data:{labels:semLabels,datasets:[
       {label:'Nuevas',data:semNuevas,backgroundColor:'#2B6CB0',borderRadius:3},
       {label:'Entregadas',data:semEntregadas,backgroundColor:'#276749',borderRadius:3}
     ]},
     options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:scOpts}
   });
 
-  mkChart('c2',{type:'bar',plugins:[barLabel],
-    data:{labels:clasifs,datasets:[
-      {label:'En Tiempo',data:enTiempoCl,backgroundColor:'#276749',borderRadius:3},
-      {label:'Con Retraso',data:conRetrasoCl,backgroundColor:'#C53030',borderRadius:3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:scOpts}
-  });
-
-  mkChart('c3',{type:'doughnut',
-    data:{labels:clasifs.map(function(c,i){return c+' '+pcts[i]+'%';}),
-      datasets:[{data:countCl,backgroundColor:['#276749','#2B6CB0','#E8640A','#D69E2E','#C53030'],borderWidth:2,borderColor:'#fff'}]},
+  // Barras GNP, Particular, Cancelados
+  mkChart('c5',{type:'bar',plugins:[barLabel],
+    data:{
+      labels:['GNP ('+pctGnp+'%)','Particular ('+pctPart+'%)','Cancelados ('+pctCan+'%)'],
+      datasets:[{label:'Ordenes',data:[gnp,part,cancelados],
+        backgroundColor:['#2B6CB0','#276749','#C53030'],borderRadius:4}]
+    },
     options:{responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:12}}},cutout:'55%'}
-  });
-
-  mkChart('c4',{type:'doughnut',
-    data:{labels:['En Tiempo ('+pctT+'%)','Con Retraso ('+pctR+'%)'],
-      datasets:[{data:[m.enTiempo,m.conRetraso],backgroundColor:['#276749','#C53030'],borderWidth:3,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8,boxWidth:12}}},cutout:'60%'}
+      plugins:{legend:{display:false}},scales:scOpts}
   });
 }
 </script>
 </body>
 </html>
+
