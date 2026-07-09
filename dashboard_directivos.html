@@ -103,7 +103,7 @@ body{background:var(--fondo);color:#2D3748}
 </div>
 
 <script>
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3yhvE4kUNXf0CTEXu1AbI-UypasTvVpB5Uo2lPU9yS6ugfFwSoxd9gQU9vv6G-dXzzw/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRMNDZ0p4YOgoyjqFqYrZt5mAEBx2x5k6_Pb51LGFfxNrZtqlh0u2NccSKAIHJVhfGAw/exec';
 var SHEET_ID = '1T_XuXIOAygibq396oM2XOC_JDReN0sGj5nwJ-gUs-lE';
 var CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleusercontent.com';
 var SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
@@ -324,9 +324,9 @@ function renderDashboard() {
     return (st==='entregado') && fe && fe.getMonth()===filtroMes && fe.getFullYear()===filtroAnio;
   });
 
-  // En tiempo / retraso — TODAS las activas
+  // En tiempo / retraso — solo ordenes del mes
   var enTiempo=0, conRetraso=0;
-  dbData.forEach(function(r){
+  rowsMes.forEach(function(r){
     if (!getF(r,IDX.noOrden)) return;
     var st = String(getF(r,IDX.statusTaller)||'').toLowerCase();
     if (st==='entregado'||st==='cancelado') return;
@@ -346,9 +346,9 @@ function renderDashboard() {
   var promDias = diasArr.length ? Math.round(diasArr.reduce(function(a,b){return a+b;},0)/diasArr.length) : 0;
   var cumplimiento = (enTiempo+conRetraso)>0 ? Math.round(enTiempo/(enTiempo+conRetraso)*100) : 0;
 
-  // Tiempos por area — usando TODAS las ordenes con datos suficientes
+  // Tiempos por area — SOLO ordenes del mes seleccionado
   var valArr=[], refArr=[], tallArr=[];
-  dbData.forEach(function(r){
+  rowsMes.forEach(function(r){
     var fi=parseDate(String(getF(r,IDX.fechaIngreso)));
     var fvf=parseDate(String(getF(r,IDX.fechaValFinal)));
     var fir=parseDate(String(getF(r,IDX.fechaIniRef)));
@@ -359,12 +359,11 @@ function renderDashboard() {
     if(ffr&&fe&&fe>ffr) tallArr.push(Math.round((fe-ffr)/86400000));
   });
 
-  // Por clasificacion - conteo
+  // Por clasificacion - conteo SOLO del mes
   var countCl=[], etCl=[], crCl=[];
   clasifs.forEach(function(cl){
-    var sub=dbData.filter(function(r){
+    var sub=rowsMes.filter(function(r){
       if(!getF(r,IDX.noOrden))return false;
-      if(filtroClasif && cl!==filtroClasif)return false;
       return getF(r,IDX.clasificacion)===cl;
     });
     countCl.push(sub.length);
@@ -410,9 +409,9 @@ function renderDashboard() {
     sStart.setDate(sStart.getDate()+7); sNum++;
   }
 
-  // Conteo por tipo cliente (valuacion field)
+  // Conteo por tipo cliente — solo del mes
   var gnp=0, part=0, cancelados=0;
-  dbData.forEach(function(r){
+  rowsMes.forEach(function(r){
     if(!getF(r,IDX.noOrden))return;
     var val=String(getF(r,IDX.valuacion)||'').toLowerCase();
     var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
