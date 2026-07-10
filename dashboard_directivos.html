@@ -461,16 +461,17 @@ function renderDashboard() {
     sStart.setDate(sStart.getDate()+7); sNum++;
   }
 
-  // Conteo por tipo cliente — solo del mes con trim
+  // Conteo por tipo cliente — usando tipoCliente (col F) del mes
   var gnp=0, part=0, cancelados=0;
   rowsMes.forEach(function(r){
     if(!getF(r,IDX.noOrden))return;
+    var tc=String(getF(r,IDX.tipoCliente)||'').trim().toLowerCase();
     var val=String(getF(r,IDX.valuacion)||'').trim().toLowerCase();
     var st=String(getF(r,IDX.statusTaller)||'').trim().toLowerCase();
+    console.log('Orden:',getF(r,IDX.noOrden),'tipoCliente:',tc,'val:',val,'st:',st);
     if(st==='cancelado') cancelados++;
-    else if(val==='gnp') gnp++;
-    else if(val==='particular') part++;
-    console.log('Orden:',getF(r,IDX.noOrden),'val:',val,'st:',st);
+    else if(tc==='gnp'||val==='gnp') gnp++;
+    else if(tc==='particular'||val==='particular') part++;
   });
   var totVal=gnp+part+cancelados;
   var pctGnp=totVal>0?Math.round(gnp/totVal*100):0;
