@@ -358,6 +358,16 @@ function renderDashboard() {
     return true;
   });
 
+  // Debug rowsMes
+  console.log('filtroMes:',filtroMes,'filtroAnio:',filtroAnio);
+  console.log('rowsMes total:',rowsMes.length);
+  // Mostrar primeras 3 fechas de BD para ver formato
+  for(var dbg=0;dbg<Math.min(3,dbData.length);dbg++){
+    var fdbg=String(getF(dbData[dbg],IDX.fechaIngreso));
+    var pdbg=parseDate(fdbg);
+    console.log('BD['+dbg+'] fecha:',fdbg,'-> mes:',pdbg?pdbg.getMonth():'null','anio:',pdbg?pdbg.getFullYear():'null');
+  }
+
   // Entregadas del mes por fecha entrega
   var entregadasMes = dbData.filter(function(r){
     if (!getF(r,IDX.noOrden)) return false;
