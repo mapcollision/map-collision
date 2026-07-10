@@ -634,18 +634,16 @@ function renderDashboard() {
       });
     }
   };
-  mkChart('c3',{type:'bar',plugins:[pctLabel],
-    data:{labels:labelsC3,datasets:[
-      {label:'En Tiempo %',data:pctEtCl,backgroundColor:'#276749',borderRadius:3},
-      {label:'Fuera de Tiempo %',data:pctCrCl,backgroundColor:'#C53030',borderRadius:3}
+  mkChart('c3',{type:'bar',plugins:[barLabel],
+    data:{labels:clasifs,datasets:[
+      {label:'En Tiempo',data:etCl,backgroundColor:'#276749',borderRadius:3},
+      {label:'Fuera de Tiempo',data:crCl,backgroundColor:'#C53030',borderRadius:3}
     ]},
     options:{responsive:true,maintainAspectRatio:true,
       plugins:{legend:legOpts},
-      scales:{x:{ticks:{font:{size:9}},grid:{display:false}},
-        y:{beginAtZero:true,max:100,ticks:{font:{size:9},callback:function(v){return v+'%';}}}}}
+      scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}},grace:'15%'}}
+    }
   });
-
-  // Barras semana nuevas vs entregadas
   mkChart('c4',{type:'bar',plugins:[barLabel],
     data:{labels:semLabels,datasets:[
       {label:'Nuevas',data:semNuevas,backgroundColor:'#2B6CB0',borderRadius:3},
