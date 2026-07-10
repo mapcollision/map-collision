@@ -262,13 +262,17 @@ async function cargarDatos() {
 function poblarFiltroMes() {
   var meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var vistos = {};
+  var hoyRef = new Date();
+  
   dbData.forEach(function(r){
     var fi = parseDate(String(getF(r,IDX.fechaIngreso)));
-    if (fi) {
-      var k = fi.getFullYear()+'-'+fi.getMonth();
+    // Solo incluir fechas validas y no futuras (evitar años incorrectos)
+    if (fi && fi.getFullYear() >= 2020 && fi <= hoyRef) {
+      var k = fi.getFullYear()+'-'+String(fi.getMonth()).padStart(2,'0');
       vistos[k] = {anio:fi.getFullYear(),mes:fi.getMonth(),label:meses[fi.getMonth()]+' '+fi.getFullYear()};
     }
   });
+  
   var keys = Object.keys(vistos).sort().reverse();
   var sel = document.getElementById('f-mes');
   sel.innerHTML = '';
@@ -277,9 +281,22 @@ function poblarFiltroMes() {
     o.value = k; o.textContent = vistos[k].label;
     sel.appendChild(o);
   });
-  if (keys.length > 0) {
-    filtroMes = vistos[keys[0]].mes;
-    filtroAnio = vistos[keys[0]].anio;
+  
+  // Default: mes actual
+  var hoy = new Date();
+  filtroMes = hoy.getMonth();
+  filtroAnio = hoy.getFullYear();
+  
+  // Buscar si existe el mes actual en las opciones
+  var keyActual = filtroAnio+'-'+String(filtroMes).padStart(2,'0');
+  if (vistos[keyActual]) {
+    sel.value = keyActual;
+  } else if (keys.length > 0) {
+    // Usar el mes mas reciente disponible
+    var first = vistos[keys[0]];
+    filtroMes = first.mes;
+    filtroAnio = first.anio;
+    sel.value = keys[0];
   }
 }
 
@@ -349,9 +366,9 @@ function renderDashboard() {
     return (st==='entregado') && fe && fe.getMonth()===filtroMes && fe.getFullYear()===filtroAnio;
   });
 
-  // En tiempo / retraso — solo ordenes del mes
+  // En tiempo / retraso — TODAS las ordenes activas (igual que app principal)
   var enTiempo=0, conRetraso=0;
-  rowsMes.forEach(function(r){
+  dbData.forEach(function(r){
     if (!getF(r,IDX.noOrden)) return;
     var st = String(getF(r,IDX.statusTaller)||'').toLowerCase();
     if (st==='entregado'||st==='cancelado') return;
@@ -384,12 +401,12 @@ function renderDashboard() {
     if(ffr&&fe&&fe>ffr) tallArr.push(Math.round((fe-ffr)/86400000));
   });
 
-  // Por clasificacion - conteo SOLO del mes
+  // Por clasificacion - conteo del mes con trim
   var countCl=[], etCl=[], crCl=[];
   clasifs.forEach(function(cl){
     var sub=rowsMes.filter(function(r){
       if(!getF(r,IDX.noOrden))return false;
-      return getF(r,IDX.clasificacion)===cl;
+      return String(getF(r,IDX.clasificacion)||'').trim()===cl;
     });
     countCl.push(sub.length);
     var et=0,cr=0;
@@ -434,15 +451,16 @@ function renderDashboard() {
     sStart.setDate(sStart.getDate()+7); sNum++;
   }
 
-  // Conteo por tipo cliente — solo del mes
+  // Conteo por tipo cliente — solo del mes con trim
   var gnp=0, part=0, cancelados=0;
   rowsMes.forEach(function(r){
     if(!getF(r,IDX.noOrden))return;
-    var val=String(getF(r,IDX.valuacion)||'').toLowerCase();
-    var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+    var val=String(getF(r,IDX.valuacion)||'').trim().toLowerCase();
+    var st=String(getF(r,IDX.statusTaller)||'').trim().toLowerCase();
     if(st==='cancelado') cancelados++;
     else if(val==='gnp') gnp++;
     else if(val==='particular') part++;
+    console.log('Orden:',getF(r,IDX.noOrden),'val:',val,'st:',st);
   });
   var totVal=gnp+part+cancelados;
   var pctGnp=totVal>0?Math.round(gnp/totVal*100):0;
@@ -573,4 +591,3 @@ function renderDashboard() {
 </script>
 </body>
 </html>
-
