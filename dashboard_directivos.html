@@ -334,14 +334,19 @@ var barLabel = {
         var val=ds.data[j]; if(!val) return;
         ctx.save(); ctx.fillStyle='#2D3748'; ctx.font='bold 9px Segoe UI';
         ctx.textAlign='center'; ctx.textBaseline='bottom';
-        ctx.fillText(val,bar.x,bar.y-2); ctx.restore();
+        // Verificar que el numero no se salga del canvas
+        var y = Math.max(bar.y-2, 12);
+        ctx.fillText(val,bar.x,y); ctx.restore();
       });
     });
   }
 };
 
 var legOpts = {position:'bottom',labels:{font:{size:9},padding:6,boxWidth:10}};
-var scOpts = {x:{ticks:{font:{size:9}},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}}}};
+var scOpts = {
+  x:{ticks:{font:{size:8},maxRotation:0},grid:{display:false}},
+  y:{beginAtZero:true,ticks:{font:{size:9}},grace:'15%'}
+};
 
 function renderDashboard() {
   if (filtroMes === null) return;
@@ -411,38 +416,38 @@ function renderDashboard() {
     if(ffr&&fe&&fe>ffr) tallArr.push(Math.round((fe-ffr)/86400000));
   });
 
-  // Por clasificacion - conteo del mes con trim
-  var countCl=[], etCl=[], crCl=[];
-  var sinClasif=0;
+  // Conteo del mes por clasificacion (para grafica de conteo)
+  var countCl=[], sinClasif=0;
   clasifs.forEach(function(cl){
     var sub=rowsMes.filter(function(r){
       if(!getF(r,IDX.noOrden))return false;
       return String(getF(r,IDX.clasificacion)||'').trim()===cl;
     });
     countCl.push(sub.length);
+  });
+  rowsMes.forEach(function(r){
+    var cl=String(getF(r,IDX.clasificacion)||'').trim();
+    if(!cl) sinClasif++;
+  });
+
+  // En tiempo vs fuera por clasificacion - usando TODAS las activas
+  var etCl=[], crCl=[];
+  clasifs.forEach(function(cl){
+    var sub=dbData.filter(function(r){
+      if(!getF(r,IDX.noOrden))return false;
+      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+      if(st==='entregado'||st==='cancelado')return false;
+      return String(getF(r,IDX.clasificacion)||'').trim()===cl;
+    });
     var et=0,cr=0;
     sub.forEach(function(r){
-      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
-      // Incluir entregadas del mes para el conteo de en tiempo
-      if(st==='cancelado')return;
-      if(st==='entregado'){
-        var feReal=parseDate(String(getF(r,IDX.fechaEntrega)||''));
-        var feCalc=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
-        if(feReal&&feCalc){if(feReal<=feCalc)et++;else cr++;}
-        return;
-      }
       var fe=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
       if(!fe)return;
       if(Math.round((fe-hoy)/86400000)<0)cr++;else et++;
     });
     etCl.push(et); crCl.push(cr);
   });
-  // Contar sin clasificacion
-  rowsMes.forEach(function(r){
-    var cl=String(getF(r,IDX.clasificacion)||'').trim();
-    if(!cl) sinClasif++;
-  });
-  console.log('Sin clasificacion:',sinClasif,'Total clasifs:',countCl.reduce(function(a,b){return a+b;},0));
+  console.log('etCl:',etCl,'crCl:',crCl);
 
   // % por clasificacion para anillo
   var totalCl=countCl.reduce(function(a,b){return a+b;},0);
@@ -460,8 +465,7 @@ function renderDashboard() {
   var semLabels=[], semNuevas=[], semEntregadas=[];
   var pDia=new Date(filtroAnio,filtroMes,1), uDia=new Date(filtroAnio,filtroMes+1,0);
   // Si es el mes actual, solo mostrar hasta hoy
-  var mesActual = new Date();
-  if(filtroMes===mesActual.getMonth() && filtroAnio===mesActual.getFullYear()){
+  if(filtroMes===hoy.getMonth() && filtroAnio===hoy.getFullYear()){
     if(uDia>hoy) uDia=new Date(hoy);
   }
   var sStart=new Date(pDia), sNum=1;
@@ -470,11 +474,15 @@ function renderDashboard() {
     if(sEnd>uDia) sEnd=new Date(uDia);
     semLabels.push('Sem '+sNum+' ('+sStart.getDate()+'-'+sEnd.getDate()+')');
     var nv=0,en=0;
-    rowsMes.forEach(function(r){
+    // Nuevas: fecha ingreso en la semana
+    dbData.forEach(function(r){
+      if(!getF(r,IDX.noOrden)) return;
       var fi=parseDate(String(getF(r,IDX.fechaIngreso)));
       if(fi&&fi>=sStart&&fi<=sEnd) nv++;
+      // Entregadas: fecha entrega en la semana
       var fe=parseDate(String(getF(r,IDX.fechaEntrega)));
-      if(fe&&fe>=sStart&&fe<=sEnd) en++;
+      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+      if(fe&&fe>=sStart&&fe<=sEnd&&st==='entregado') en++;
     });
     semNuevas.push(nv); semEntregadas.push(en);
     sStart.setDate(sStart.getDate()+7); sNum++;
@@ -566,7 +574,7 @@ function renderDashboard() {
         {label:'Nuevas',data:anualNuevas,backgroundColor:'#2B6CB0',borderRadius:3},
         {label:'Entregadas',data:anualEntregadas,backgroundColor:'#276749',borderRadius:3}
       ]},
-      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:scOpts}
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:{x:{ticks:{font:{size:8},maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}},grace:'15%'}}}
     });
   }
 
@@ -631,7 +639,7 @@ function renderDashboard() {
       {label:'Nuevas',data:semNuevas,backgroundColor:'#2B6CB0',borderRadius:3},
       {label:'Entregadas',data:semEntregadas,backgroundColor:'#276749',borderRadius:3}
     ]},
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:scOpts}
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:legOpts},scales:{x:{ticks:{font:{size:8},maxRotation:0},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9}},grace:'15%'}}}
   });
 
   // Barras GNP, Particular, Cancelados
