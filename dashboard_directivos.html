@@ -447,7 +447,19 @@ function renderDashboard() {
     });
     etCl.push(et); crCl.push(cr);
   });
-  console.log('etCl:',etCl,'crCl:',crCl);
+  console.log('etCl:',JSON.stringify(etCl),'crCl:',JSON.stringify(crCl));
+  // Verificar ordenes sin clasificacion que estan fuera de tiempo
+  var sinClasifFuera=0;
+  dbData.forEach(function(r){
+    if(!getF(r,IDX.noOrden))return;
+    var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+    if(st==='entregado'||st==='cancelado')return;
+    var cl=String(getF(r,IDX.clasificacion)||'').trim();
+    var fe=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
+    if(!fe)return;
+    if(Math.round((fe-hoy)/86400000)<0 && !cl) sinClasifFuera++;
+  });
+  console.log('Sin clasif fuera de tiempo:',sinClasifFuera);
 
   // % por clasificacion para anillo
   var totalCl=countCl.reduce(function(a,b){return a+b;},0);
