@@ -133,19 +133,36 @@ var IDX = {
 function parseDate(str) {
   if (!str) return null;
   var s = String(str).trim();
-  if (!s) return null;
+  if (!s || s === '0' || s === 'null' || s === 'undefined') return null;
+
+  // Numero serial de Google Sheets
+  var num = parseFloat(s);
+  if (!isNaN(num) && !s.includes('/') && !s.includes('-') && num > 40000 && num < 60000) {
+    var base = new Date(1899,11,30);
+    base.setDate(base.getDate() + Math.floor(num));
+    return base;
+  }
+
+  // Formato DD/MM/YYYY — formato exacto que devuelve el Apps Script
   if (s.includes('/')) {
     var p = s.split('/');
     if (p.length === 3) {
-      var a=parseInt(p[0]),b=parseInt(p[1]),c=parseInt(p[2]);
-      if (c > 1900) return new Date(c,b-1,a);
-      if (a > 1900) return new Date(a,b-1,c);
+      var dd=parseInt(p[0]), mm=parseInt(p[1]), yyyy=parseInt(p[2]);
+      if (yyyy > 1900 && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+        return new Date(yyyy, mm-1, dd);
+      }
     }
   }
+
+  // Formato YYYY-MM-DD
   if (s.includes('-') && s.length === 10) {
     var pp = s.split('-');
-    return new Date(parseInt(pp[0]),parseInt(pp[1])-1,parseInt(pp[2]));
+    var yy=parseInt(pp[0]), m2=parseInt(pp[1]), d2=parseInt(pp[2]);
+    if (yy > 1900 && m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31) {
+      return new Date(yy, m2-1, d2);
+    }
   }
+
   return null;
 }
 
@@ -226,6 +243,14 @@ async function cargarDatos() {
         while(row.length < 57) row.push('');
         return row;
       });
+    }
+    // Debug: ver formato de fechas
+    if (dbData.length > 0) {
+      console.log('Total filas BD:', dbData.length);
+      console.log('Muestra fecha ingreso fila 1:', dbData[0][IDX.fechaIngreso]);
+      console.log('Muestra fecha ingreso fila 2:', dbData[1] ? dbData[1][IDX.fechaIngreso] : 'N/A');
+      var testDate = parseDate(String(dbData[0][IDX.fechaIngreso]));
+      console.log('parseDate resultado:', testDate ? testDate.toISOString() : 'null');
     }
     poblarFiltroMes();
     renderDashboard();
