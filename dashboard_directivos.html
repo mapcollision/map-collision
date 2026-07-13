@@ -430,36 +430,31 @@ function renderDashboard() {
     if(!cl) sinClasif++;
   });
 
-  // En tiempo vs fuera por clasificacion - usando TODAS las activas
+  // En tiempo vs fuera por clasificacion - usando ordenes del mes
   var etCl=[], crCl=[];
   clasifs.forEach(function(cl){
-    var sub=dbData.filter(function(r){
+    var sub=rowsMes.filter(function(r){
       if(!getF(r,IDX.noOrden))return false;
-      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
-      if(st==='entregado'||st==='cancelado')return false;
       return String(getF(r,IDX.clasificacion)||'').trim()===cl;
     });
     var et=0,cr=0;
     sub.forEach(function(r){
+      var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
+      if(st==='cancelado')return;
+      if(st==='entregado'){
+        // Entregada: comparar fecha real vs fecha calculada
+        var feReal=parseDate(String(getF(r,IDX.fechaEntrega)||''));
+        var feCalc=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
+        if(feReal&&feCalc){if(feReal<=feCalc)et++;else cr++;}
+        return;
+      }
+      // Activa: comparar fecha calculada vs hoy
       var fe=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
       if(!fe)return;
       if(Math.round((fe-hoy)/86400000)<0)cr++;else et++;
     });
     etCl.push(et); crCl.push(cr);
   });
-  console.log('etCl:',JSON.stringify(etCl),'crCl:',JSON.stringify(crCl));
-  // Verificar ordenes sin clasificacion que estan fuera de tiempo
-  var sinClasifFuera=0;
-  dbData.forEach(function(r){
-    if(!getF(r,IDX.noOrden))return;
-    var st=String(getF(r,IDX.statusTaller)||'').toLowerCase();
-    if(st==='entregado'||st==='cancelado')return;
-    var cl=String(getF(r,IDX.clasificacion)||'').trim();
-    var fe=parseDate(String(getF(r,IDX.fechaEntregaCalc)||''));
-    if(!fe)return;
-    if(Math.round((fe-hoy)/86400000)<0 && !cl) sinClasifFuera++;
-  });
-  console.log('Sin clasif fuera de tiempo:',sinClasifFuera);
 
   // % por clasificacion para anillo
   var totalCl=countCl.reduce(function(a,b){return a+b;},0);
@@ -666,3 +661,4 @@ function renderDashboard() {
 </script>
 </body>
 </html>
+
