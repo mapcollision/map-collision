@@ -927,19 +927,27 @@ function clasificarOrden(row) {
     return null; // Cancelado y entregados de otros dias no aparecen en Dashboard
   }
   if (st === 'vale') return 'vale';
-  // Si ya tiene piezas listas para taller, pasa a taller aunque diga "en transito"
-  if (listoTaller.includes(sr)) {
-    if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
-    if (getField(row,IDX.inicioRep)) return 'taller-pintura';
-    return 'taller-hojalateria';
-  }
   // En reparacion va directo a Taller
   if (st === 'en reparacion') {
     if (terminadoTaller) return 'terminado';
     return 'taller-pintura';
   }
-  // Solo queda en transito si NO tiene refacciones listas
-  if (st === 'en transito') return 'transito';
+  // En transito: pasa a Taller SOLO si tiene Fecha de Reingreso Y piezas completas
+  if (st === 'en transito') {
+    var fechaReing = getField(row, IDX.fechaReingreso);
+    if (fechaReing && listoTaller.includes(sr)) {
+      if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
+      if (getField(row,IDX.inicioRep)) return 'taller-pintura';
+      return 'taller-hojalateria';
+    }
+    return 'transito';
+  }
+  // Piezas completas sin estar en transito   flujo normal
+  if (listoTaller.includes(sr)) {
+    if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
+    if (getField(row,IDX.inicioRep)) return 'taller-pintura';
+    return 'taller-hojalateria';
+  }
   if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
   if (getField(row,IDX.inicioRep)) return 'taller-pintura';
   if (sv === 'autorizada' && sr && !listoTaller.includes(sr)) return 'refacciones';
