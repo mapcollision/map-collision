@@ -1197,12 +1197,18 @@ async function cargarDashboard() {
   var valPend=dbData.filter(function(r){
     if(!r[IDX.noOrden]) return false;
     var sv=String(r[IDX.statusVal]||'').toLowerCase();
+    var st=String(r[IDX.statusTaller]||'').toLowerCase();
+    // Excluir entregados y cancelados
+    if(st==='entregado') return false;
     return sv&&sv!=='autorizada'&&sv!=='rechazado'&&sv!=='perdida total';
   });
   var refPend=dbData.filter(function(r){
     if(!r[IDX.noOrden]) return false;
     var sv=String(r[IDX.statusVal]||'').toLowerCase();
     var sr=String(r[IDX.statusRef]||'').toLowerCase();
+    var st=String(r[IDX.statusTaller]||'').toLowerCase();
+    // Excluir entregados y cancelados
+    if(st==='entregado') return false;
     return sv==='autorizada'&&!listoTaller.includes(sr);
   });
 
