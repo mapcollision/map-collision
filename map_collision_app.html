@@ -604,7 +604,7 @@ textarea{resize:vertical;min-height:70px}
           <h2>Dashboard Facturacion</h2>
           <button class="btn btn-primary btn-sm" onclick="cargarFact()">&#8635; Actualizar</button>
         </div>
-        <div id="fact-board" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
+        <div id="fact-board" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px">
           <div class="loading-text">Cargando...</div>
         </div>
       </div>
@@ -963,14 +963,12 @@ async function cargarFact() {
 
     if (tipo === 'facturado') {
       return '<div class="fact-card-mini">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between">'
-        +'<div style="display:flex;align-items:center;gap:8px">'
-        +'<div style="width:36px;height:24px;border-radius:4px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:15px">&#128664;</div>'
-        +'<div><div style="font-size:12px;font-weight:800;color:var(--azul)">'+(no)+'</div>'
-        +'<div style="font-size:10px;color:var(--gris-medio)">'+unidad+'</div></div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +'<div style="width:28px;height:20px;border-radius:3px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">&#128664;</div>'
+        +'<div><div style="font-size:10px;font-weight:800;color:#1A3A5C">'+no+'</div>'
+        +'<div style="font-size:8px;color:#718096">'+unidad+'</div></div>'
         +'</div>'
-        +'<span class="fact-badge">&#10003; FACTURADO OK</span>'
-        +'</div>'
+        +'<div style="display:block;background:#276749;color:white;font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px;text-align:center;margin-top:5px">&#10003; FACTURADO OK</div>'
         +'</div>';
     }
 
@@ -982,51 +980,54 @@ async function cargarFact() {
         +'</div>'
       : '';
 
-    return '<div class="fact-card '+cls+'">'
-      +'<div style="display:flex;align-items:center;gap:10px">'
-      +'<div style="width:44px;height:28px;border-radius:4px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:18px">&#128664;</div>'
-      +'<div><div style="font-size:13px;font-weight:800;color:var(--azul)">'+no+'</div>'
-      +'<div style="font-size:10px;color:var(--gris-medio)">'+unidad+'</div></div>'
+    return '<div class="fact-card '+cls+'" style="border-radius:7px;padding:8px;border:2px solid '+(cls==='rojo'?'#FEB2B2':'#CBD5E0')+';border-left:3px solid '+(cls==='rojo'?'var(--rojo)':'var(--gris-medio)')+';">'
+      +'<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:5px">'
+      +'<div class="car-icon-box" style="width:100%;height:28px;border-radius:4px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:3px">&#128664;</div>'
+      +'<div style="font-size:10px;font-weight:800;color:var(--azul);text-align:center">'+no+'</div>'
+      +'<div style="font-size:9px;color:var(--gris-medio);text-align:center">'+unidad+'</div>'
       +'</div>'
-      +'<div style="height:1px;background:var(--gris-borde);margin:6px 0"></div>'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Status Val.</span>'+pillStatusFact(sv)+'</div>'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Status Taller</span>'+pillStatusFact(st)+'</div>'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Fecha Entrega</span>'
-      +'<span style="font-size:9px;font-weight:600;color:#2D3748">'+fe+'</span></div>'
+      +'<div style="height:1px;background:var(--gris-borde);margin:4px 0"></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+      +'<span style="font-size:8px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">S.Val</span>'+pillStatusFact(sv)+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+      +'<span style="font-size:8px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Taller</span>'+pillStatusFact(st)+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
+      +'<span style="font-size:8px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Entrega</span>'
+      +'<span style="font-size:8px;font-weight:600;color:#2D3748">'+fe+'</span></div>'
       + checkHtml
       +'</div>';
   }
 
   var html = '';
   // Col 1 Complemento
-  html += '<div class="fact-col">'
+  html += '<div class="fact-col" id="fact-col-complemento">'
     +'<div class="fact-col-header" style="background:var(--gris-medio)">'
     +'<h3>Ordenes con Complemento</h3>'
     +'<span class="fact-col-count">'+complemento.length+'</span>'
     +'</div>'
-    + (complemento.length ? complemento.map(function(r){return carCard(r,'complemento');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes</div>')
-    +'</div>';
+    +'<div class="fact-cards-grid">'
+    + (complemento.length ? complemento.map(function(r){return carCard(r,'complemento');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px;grid-column:1/-1">Sin ordenes</div>')
+    +'</div></div>';
 
   // Col 2 Pendiente
-  html += '<div class="fact-col">'
+  html += '<div class="fact-col" id="fact-col-pendiente">'
     +'<div class="fact-col-header" style="background:var(--rojo)">'
     +'<h3>Pendiente por Facturar</h3>'
     +'<span class="fact-col-count">'+pendiente.length+'</span>'
     +'</div>'
-    + (pendiente.length ? pendiente.map(function(r){return carCard(r,'pendiente');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes pendientes</div>')
-    +'</div>';
+    +'<div class="fact-cards-grid">'
+    + (pendiente.length ? pendiente.map(function(r){return carCard(r,'pendiente');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px;grid-column:1/-1">Sin ordenes pendientes</div>')
+    +'</div></div>';
 
   // Col 3 Facturado
-  html += '<div class="fact-col">'
+  html += '<div class="fact-col" id="fact-col-facturado">'
     +'<div class="fact-col-header" style="background:var(--verde)">'
     +'<h3>Facturado</h3>'
     +'<span class="fact-col-count">'+facturado.length+'</span>'
     +'</div>'
-    + (facturado.length ? facturado.map(function(r){return carCard(r,'facturado');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes facturadas</div>')
-    +'</div>';
+    +'<div class="fact-cards-grid">'
+    + (facturado.length ? facturado.map(function(r){return carCard(r,'facturado');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px;grid-column:1/-1">Sin ordenes facturadas</div>')
+    +'</div></div>';
 
   document.getElementById('fact-board').innerHTML = html;
 }
@@ -1035,13 +1036,68 @@ async function onFacturar(el) {
   if (el.innerHTML !== '') return;
   var noOrden = el.getAttribute('data-orden');
   var fila = parseInt(el.getAttribute('data-fila'));
+
+  // Feedback visual inmediato
   el.innerHTML = '...';
+  el.style.background = '#CBD5E0';
+
   var ok = await guardarFacturado(noOrden, fila);
   if (ok) {
-    setTimeout(function(){ cargarFact(); }, 800);
+    // Mover tarjeta visualmente SIN recargar BD
+    var card = el.closest('.fact-card');
+    if (card) {
+      // Animar salida
+      card.style.transition = 'all 0.3s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(function() {
+        // Quitar de pendiente
+        card.remove();
+        // Agregar a facturado al inicio del grid
+        var gridFact = document.querySelector('#fact-col-facturado .cards-grid');
+        if (gridFact) {
+          var colorAuto = '';
+          var carIconBox = card.querySelector('.car-icon-box');
+          if (carIconBox) colorAuto = carIconBox.style.background;
+          var unidadEl = card.querySelector('.card-unidad');
+          var unidad = unidadEl ? unidadEl.textContent : '';
+          var newCard = document.createElement('div');
+          newCard.className = 'fact-card-mini';
+          newCard.style.opacity = '0';
+          newCard.innerHTML =
+            '<div style="display:flex;align-items:center;gap:6px">'
+            +'<div style="width:28px;height:20px;border-radius:3px;background:'+colorAuto+';display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">&#128664;</div>'
+            +'<div><div style="font-size:10px;font-weight:800;color:#1A3A5C">'+noOrden+'</div>'
+            +'<div style="font-size:8px;color:#718096">'+unidad+'</div></div>'
+            +'</div>'
+            +'<div style="display:block;background:#276749;color:white;font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px;text-align:center;margin-top:5px">&#10003; FACTURADO OK</div>';
+          gridFact.insertBefore(newCard, gridFact.firstChild);
+          // Animar entrada
+          setTimeout(function(){
+            newCard.style.transition = 'opacity 0.3s';
+            newCard.style.opacity = '1';
+          }, 50);
+          // Actualizar contadores
+          actualizarContadoresFact();
+        }
+      }, 300);
+    }
   } else {
     el.innerHTML = '';
+    el.style.background = 'white';
+    el.style.borderColor = '#FC8181';
   }
+}
+
+function actualizarContadoresFact() {
+  var cols = ['fact-col-complemento','fact-col-pendiente','fact-col-facturado'];
+  cols.forEach(function(id) {
+    var col = document.getElementById(id);
+    if (!col) return;
+    var cards = col.querySelectorAll('.fact-card, .fact-card-mini');
+    var counter = col.querySelector('.fact-col-count');
+    if (counter) counter.textContent = cards.length;
+  });
 }
 
 function renovarSesionManual() {
