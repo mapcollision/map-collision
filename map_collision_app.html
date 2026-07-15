@@ -44,6 +44,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gris-claro);co
 .res-card.rojo{border-left-color:var(--rojo)}
 .res-card.amarillo{border-left-color:#D69E2E}
 .res-card.gris{border-left-color:var(--gris-medio)}
+.fact-col{background:rgba(255,255,255,.6);border-radius:10px;padding:10px;min-height:300px}
+.fact-col-header{padding:8px 10px;border-radius:7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.fact-col-header h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:white;margin:0}
+.fact-col-count{background:rgba(255,255,255,.25);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.fact-card{border-radius:8px;padding:10px 12px;margin-bottom:8px;border:2px solid transparent;transition:all .2s}
+.fact-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.fact-card.gris{background:#F7F8FA;border-color:#CBD5E0;border-left:4px solid var(--gris-medio)}
+.fact-card.rojo{background:#FFF5F5;border-color:#FEB2B2;border-left:4px solid var(--rojo)}
+.fact-card.verde{background:#F0FFF4;border-color:#9AE6B4;border-left:4px solid var(--verde)}
+.fact-card-mini{border-radius:8px;padding:7px 10px;margin-bottom:6px;background:#F0FFF4;border:2px solid #9AE6B4;border-left:4px solid var(--verde);transition:all .2s}
+.fact-check-area{margin-top:7px;display:flex;align-items:center;justify-content:space-between;background:#FFF5F5;border-radius:6px;padding:5px 8px;border:1px dashed #FEB2B2}
+.fact-check-label{font-size:9px;color:var(--rojo);font-weight:700}
+.fact-check-box{width:20px;height:20px;border-radius:4px;border:2px solid #FC8181;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;transition:all .2s;flex-shrink:0;font-size:13px;font-weight:700;color:white}
+.fact-badge{display:inline-block;background:var(--verde);color:white;font-size:8px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
 .res-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-medio);margin-bottom:5px}
 .res-card-value{font-size:32px;font-weight:800;color:var(--gris-oscuro);line-height:1}
 .res-card-sub{font-size:10px;color:var(--gris-medio);margin-top:4px}
@@ -62,6 +76,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gris-claro);co
 .res-card.rojo{border-left-color:var(--rojo)}
 .res-card.amarillo{border-left-color:#D69E2E}
 .res-card.gris{border-left-color:var(--gris-medio)}
+.fact-col{background:rgba(255,255,255,.6);border-radius:10px;padding:10px;min-height:300px}
+.fact-col-header{padding:8px 10px;border-radius:7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.fact-col-header h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:white;margin:0}
+.fact-col-count{background:rgba(255,255,255,.25);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.fact-card{border-radius:8px;padding:10px 12px;margin-bottom:8px;border:2px solid transparent;transition:all .2s}
+.fact-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.fact-card.gris{background:#F7F8FA;border-color:#CBD5E0;border-left:4px solid var(--gris-medio)}
+.fact-card.rojo{background:#FFF5F5;border-color:#FEB2B2;border-left:4px solid var(--rojo)}
+.fact-card.verde{background:#F0FFF4;border-color:#9AE6B4;border-left:4px solid var(--verde)}
+.fact-card-mini{border-radius:8px;padding:7px 10px;margin-bottom:6px;background:#F0FFF4;border:2px solid #9AE6B4;border-left:4px solid var(--verde);transition:all .2s}
+.fact-check-area{margin-top:7px;display:flex;align-items:center;justify-content:space-between;background:#FFF5F5;border-radius:6px;padding:5px 8px;border:1px dashed #FEB2B2}
+.fact-check-label{font-size:9px;color:var(--rojo);font-weight:700}
+.fact-check-box{width:20px;height:20px;border-radius:4px;border:2px solid #FC8181;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;transition:all .2s;flex-shrink:0;font-size:13px;font-weight:700;color:white}
+.fact-badge{display:inline-block;background:var(--verde);color:white;font-size:8px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
 .res-card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-medio);margin-bottom:5px}
 .res-card-value{font-size:32px;font-weight:800;color:var(--gris-oscuro);line-height:1}
 .res-card-sub{font-size:10px;color:var(--gris-medio);margin-top:4px}
@@ -294,6 +322,10 @@ textarea{resize:vertical;min-height:70px}
       <div class="nav-item" onclick="showPage('dashboard-trello')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="11" rx="1"/><rect x="10" y="3" width="5" height="7" rx="1"/><rect x="17" y="3" width="4" height="5" rx="1"/></svg>
         Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('dashboard-facturacion')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        Facturacion
       </div>
       <div class="nav-item" onclick="exportarExcel()">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -566,6 +598,17 @@ textarea{resize:vertical;min-height:70px}
         </div>
       </div>
 
+      <!-- DASHBOARD FACTURACION -->
+      <div id="page-dashboard-facturacion" class="page">
+        <div class="page-header">
+          <h2>Dashboard Facturacion</h2>
+          <button class="btn btn-primary btn-sm" onclick="cargarFact()">&#8635; Actualizar</button>
+        </div>
+        <div id="fact-board" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
+          <div class="loading-text">Cargando...</div>
+        </div>
+      </div>
+
       <!-- BUSQUEDA -->
       <div id="page-busqueda" class="page">
         <div class="page-header"><h2>Búsqueda y Actualización</h2></div>
@@ -617,7 +660,7 @@ const CLIENT_ID = '219469945932-4b97uq84bh6b2hfq4ohfs2a4nl85ga35.apps.googleuser
 const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets';
 const DB_SHEET  = 'Base de Datos';
 // URL del Apps Script Web App (llenar despues de desplegar)
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRMNDZ0p4YOgoyjqFqYrZt5mAEBx2x5k6_Pb51LGFfxNrZtqlh0u2NccSKAIHJVhfGAw/exec';
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwddj6HwP3HrNzsxyOgYDBBZlY6IpdJgRVb5JqUlbC9cbSvr5Qv02bHZoFKYeQCkRu3ww/exec';
 
 
 function parseDate(str) {
@@ -685,7 +728,7 @@ const IDX = {
   pHojalateria:47,pMecanica:48,pPrepPintura:49,pPintura:50,
   pArmado:51,pPulido:52,pTot:53,
   trabajoTerminado:54,statusTaller:55,fechaEntrega:56,
-  historial:57
+  historial:57,facturado:58
 };
 
 let tokenClient, accessToken = null;
@@ -815,6 +858,192 @@ function iniciarApp() {
   });
 }
 
+// ============================================================
+// DASHBOARD FACTURACION
+// ============================================================
+
+function colorAutoFact(colorStr) {
+  if (!colorStr) return '#A0AEC0';
+  var c = colorStr.toLowerCase().trim();
+  var mapa = {
+    'blanco':'#F7F8FA','negro':'#1A202C','gris':'#718096','plata':'#CBD5E0',
+    'rojo':'#E53E3E','azul':'#3182CE','verde':'#38A169','amarillo':'#ECC94B',
+    'naranja':'#E8640A','cafe':'#744210','vino':'#702459','oro':'#D69E2E',
+    'morado':'#805AD5','rosa':'#ED64A6'
+  };
+  if (mapa[c]) return mapa[c];
+  var keys = Object.keys(mapa);
+  for (var i=0; i<keys.length; i++) {
+    if (c.indexOf(keys[i]) >= 0) return mapa[keys[i]];
+  }
+  return '#A0AEC0';
+}
+
+function pillStatusFact(val) {
+  if (!val) return '<span style="font-size:9px;color:var(--gris-medio)"> </span>';
+  var v = String(val).toLowerCase();
+  var color = '#718096', bg = '#EDF2F7';
+  if (v === 'entregado') { color = '#276749'; bg = '#F0FFF4'; }
+  else if (v === 'en reparacion') { color = '#E8640A'; bg = '#FDE8D8'; }
+  else if (v === 'en transito') { color = '#2B6CB0'; bg = '#EBF4FF'; }
+  else if (v === 'vale') { color = '#805AD5'; bg = '#FAF5FF'; }
+  else if (v === 'complemento') { color = '#718096'; bg = '#EDF2F7'; }
+  else if (v === 'autorizada') { color = '#2B6CB0'; bg = '#EBF4FF'; }
+  return '<span style="display:inline-block;padding:1px 7px;border-radius:20px;font-size:9px;font-weight:600;background:'+bg+';color:'+color+'">'+val+'</span>';
+}
+
+async function guardarFacturado(noOrden, fila) {
+  try {
+    var row = [...dbData[fila-2]];
+    while(row.length < 59) row.push('');
+    row[58] = 'SI';
+    // Guardar historial
+    row[57] = registrarCambio(noOrden, 'Facturado');
+    var resp;
+    if (APPS_SCRIPT_URL) {
+      resp = await callAppsScript({action:'updateRow', row:row, rowIndex:fila});
+    } else {
+      resp = await apiUpdate("'"+DB_SHEET+"'!A"+fila+":BH"+fila,[row]);
+    }
+    if (resp && resp.error) {
+      toast('Error al guardar: '+resp.error.message, 'error');
+      return false;
+    }
+    // Actualizar en memoria
+    dbData[fila-2][58] = 'SI';
+    toast('Orden '+noOrden+' marcada como Facturada OK', 'success');
+    return true;
+  } catch(e) {
+    toast('Error: '+e.message, 'error');
+    return false;
+  }
+}
+
+async function cargarFact() {
+  await cargarBD();
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var limite15 = new Date(hoy); limite15.setDate(hoy.getDate() - 15);
+
+  // Complemento: Status Val = Complemento (sin importar taller)
+  var complemento = dbData.filter(function(r){
+    if (!r[IDX.noOrden]) return false;
+    var sv = String(r[IDX.statusVal]||'').toLowerCase().trim();
+    var st = String(r[IDX.statusTaller]||'').toLowerCase().trim();
+    return sv === 'complemento' && st !== 'entregado';
+  });
+
+  // Pendiente por facturar: Autorizada + Entregado + sin facturar
+  var pendiente = dbData.filter(function(r){
+    if (!r[IDX.noOrden]) return false;
+    var sv = String(r[IDX.statusVal]||'').toLowerCase().trim();
+    var st = String(r[IDX.statusTaller]||'').toLowerCase().trim();
+    var fact = String(r[58]||'').trim().toUpperCase();
+    return sv === 'autorizada' && st === 'entregado' && fact !== 'SI';
+  });
+
+  // Facturado: marcado SI en los ultimos 15 dias
+  var facturado = dbData.filter(function(r){
+    if (!r[IDX.noOrden]) return false;
+    var fact = String(r[58]||'').trim().toUpperCase();
+    if (fact !== 'SI') return false;
+    var fe = parseDate(String(r[IDX.fechaEntrega]||''));
+    if (!fe) return true;
+    return fe >= limite15;
+  }).reverse(); // mas reciente arriba
+
+  function carCard(r, tipo) {
+    var no = r[IDX.noOrden]||'';
+    var unidad = r[IDX.tipoUnidad]||'';
+    var color = colorAutoFact(r[IDX.color]||'');
+    var fila = dbData.indexOf(r) + 2;
+    var fe = r[IDX.fechaEntrega]||'';
+    var sv = r[IDX.statusVal]||'';
+    var st = r[IDX.statusTaller]||'';
+    var colorBorde = color==='#F7F8FA'?'border:1px solid #CBD5E0':'';
+
+    if (tipo === 'facturado') {
+      return '<div class="fact-card-mini">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="width:36px;height:24px;border-radius:4px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:15px">&#128664;</div>'
+        +'<div><div style="font-size:12px;font-weight:800;color:var(--azul)">'+(no)+'</div>'
+        +'<div style="font-size:10px;color:var(--gris-medio)">'+unidad+'</div></div>'
+        +'</div>'
+        +'<span class="fact-badge">&#10003; FACTURADO OK</span>'
+        +'</div>'
+        +'</div>';
+    }
+
+    var cls = tipo === 'pendiente' ? 'rojo' : 'gris';
+    var checkHtml = tipo === 'pendiente'
+      ? '<div class="fact-check-area">'
+        +'<span class="fact-check-label">Marcar si ya se facturo</span>'
+        +'<div class="fact-check-box" data-orden='+'"'+no+'"'+' data-fila="'+fila+'" onclick="onFacturar(this)"></div>'
+        +'</div>'
+      : '';
+
+    return '<div class="fact-card '+cls+'">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<div style="width:44px;height:28px;border-radius:4px;background:'+color+';'+colorBorde+';display:flex;align-items:center;justify-content:center;font-size:18px">&#128664;</div>'
+      +'<div><div style="font-size:13px;font-weight:800;color:var(--azul)">'+no+'</div>'
+      +'<div style="font-size:10px;color:var(--gris-medio)">'+unidad+'</div></div>'
+      +'</div>'
+      +'<div style="height:1px;background:var(--gris-borde);margin:6px 0"></div>'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Status Val.</span>'+pillStatusFact(sv)+'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Status Taller</span>'+pillStatusFact(st)+'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+      +'<span style="font-size:9px;font-weight:600;color:var(--gris-medio);text-transform:uppercase">Fecha Entrega</span>'
+      +'<span style="font-size:9px;font-weight:600;color:#2D3748">'+fe+'</span></div>'
+      + checkHtml
+      +'</div>';
+  }
+
+  var html = '';
+  // Col 1 Complemento
+  html += '<div class="fact-col">'
+    +'<div class="fact-col-header" style="background:var(--gris-medio)">'
+    +'<h3>Ordenes con Complemento</h3>'
+    +'<span class="fact-col-count">'+complemento.length+'</span>'
+    +'</div>'
+    + (complemento.length ? complemento.map(function(r){return carCard(r,'complemento');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes</div>')
+    +'</div>';
+
+  // Col 2 Pendiente
+  html += '<div class="fact-col">'
+    +'<div class="fact-col-header" style="background:var(--rojo)">'
+    +'<h3>Pendiente por Facturar</h3>'
+    +'<span class="fact-col-count">'+pendiente.length+'</span>'
+    +'</div>'
+    + (pendiente.length ? pendiente.map(function(r){return carCard(r,'pendiente');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes pendientes</div>')
+    +'</div>';
+
+  // Col 3 Facturado
+  html += '<div class="fact-col">'
+    +'<div class="fact-col-header" style="background:var(--verde)">'
+    +'<h3>Facturado</h3>'
+    +'<span class="fact-col-count">'+facturado.length+'</span>'
+    +'</div>'
+    + (facturado.length ? facturado.map(function(r){return carCard(r,'facturado');}).join('') : '<div style="text-align:center;padding:20px;color:var(--gris-medio);font-size:12px">Sin ordenes facturadas</div>')
+    +'</div>';
+
+  document.getElementById('fact-board').innerHTML = html;
+}
+
+async function onFacturar(el) {
+  if (el.innerHTML !== '') return;
+  var noOrden = el.getAttribute('data-orden');
+  var fila = parseInt(el.getAttribute('data-fila'));
+  el.innerHTML = '...';
+  var ok = await guardarFacturado(noOrden, fila);
+  if (ok) {
+    setTimeout(function(){ cargarFact(); }, 800);
+  } else {
+    el.innerHTML = '';
+  }
+}
+
 function renovarSesionManual() {
   tokenClient.requestAccessToken({prompt:'select_account'});
   toast('Selecciona tu cuenta para renovar la sesion','');
@@ -912,6 +1141,8 @@ function clasificarOrden(row) {
   const sr  = String(getField(row,IDX.statusRef)||'').toLowerCase();
   const st  = String(getField(row,IDX.statusTaller)||'').toLowerCase();
   const listoTaller = ['unidad completa','mo','pend. ref. taller puede avanzar'];
+  // Verificar con trim para evitar espacios extra
+  var srTrim = sr.trim();
 
   
   const pcts = [IDX.pHojalateria,IDX.pMecanica,IDX.pPrepPintura,IDX.pPintura,IDX.pArmado,IDX.pPulido,IDX.pTot];
@@ -932,25 +1163,23 @@ function clasificarOrden(row) {
     if (terminadoTaller) return 'terminado';
     return 'taller-pintura';
   }
-  // En transito: pasa a Taller SOLO si tiene Fecha de Reingreso Y piezas completas
-  if (st === 'en transito') {
-    var fechaReing = getField(row, IDX.fechaReingreso);
-    if (fechaReing && listoTaller.includes(sr)) {
-      if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
-      if (getField(row,IDX.inicioRep)) return 'taller-pintura';
-      return 'taller-hojalateria';
+  // Piezas completas   SIEMPRE va a Taller sin importar status taller
+  // EXCEPTO si es en transito sin reingreso (esa condicion se maneja abajo)
+  if (listoTaller.includes(srTrim)) {
+    if (st === 'en transito') {
+      // En transito: solo pasa a Taller si tiene Fecha de Reingreso
+      var fechaReing = getField(row, IDX.fechaReingreso);
+      if (!fechaReing) return 'transito';
     }
-    return 'transito';
-  }
-  // Piezas completas sin estar en transito   flujo normal
-  if (listoTaller.includes(sr)) {
     if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
     if (getField(row,IDX.inicioRep)) return 'taller-pintura';
     return 'taller-hojalateria';
   }
+  // En transito sin piezas completas
+  if (st === 'en transito') return 'transito';
   if (getField(row,IDX.inicioRep) && terminadoTaller) return 'terminado';
   if (getField(row,IDX.inicioRep)) return 'taller-pintura';
-  if (sv === 'autorizada' && sr && !listoTaller.includes(sr)) return 'refacciones';
+  if (sv === 'autorizada' && sr && !listoTaller.includes(srTrim)) return 'refacciones';
   if (sv === 'autorizada') return 'refacciones';
   if (sv && sv !== 'rechazado' && sv !== 'perdida total') return 'valuacion';
   return 'valuacion';
@@ -1352,7 +1581,20 @@ function actualizarTablasPendientes() {
   const pendRef=dbData.filter(r=>{const sv=String(r[IDX.statusVal]||'').toLowerCase();const sr=String(r[IDX.statusRef]||'').toLowerCase();return r[IDX.noOrden]&&sv==='autorizada'&&!listoTaller.includes(sr);}).slice(0,6);
   document.getElementById('badge-ref').textContent=pendRef.length;
   renderPending('ref-pending',pendRef,[IDX.noOrden,IDX.tipoUnidad,IDX.clasificacion,IDX.statusVal,IDX.fechaEntregaCalc],'abrirRef');
-  const pendTall=dbData.filter(r=>{const sr=String(r[IDX.statusRef]||'').toLowerCase();const st=String(r[IDX.statusTaller]||'').toLowerCase();return r[IDX.noOrden]&&listoTaller.includes(sr)&&!r[IDX.inicioRep]&&st!=='entregado';}).slice(0,6);
+  const pendTall=dbData.filter(function(r){
+    if(!r[IDX.noOrden]) return false;
+    var sr2=String(r[IDX.statusRef]||'').trim().toLowerCase();
+    var st2=String(r[IDX.statusTaller]||'').trim().toLowerCase();
+    var sv2=String(r[IDX.statusVal]||'').trim().toLowerCase();
+    if(!listoTaller.includes(sr2)) return false;
+    if(st2==='entregado'||st2==='cancelado') return false;
+    if(r[IDX.inicioRep]) return false; // Ya inicio reparacion
+    // Si esta en transito, necesita fecha de reingreso
+    if(st2==='en transito'){
+      return !!r[IDX.fechaReingreso];
+    }
+    return true;
+  }).slice(0,6);
   document.getElementById('badge-tall').textContent=pendTall.length;
   renderPending('tall-pending',pendTall,[IDX.noOrden,IDX.tipoUnidad,IDX.statusRef,IDX.clasificacion,IDX.fechaEntregaCalc],'abrirTall');
 }
@@ -1952,6 +2194,7 @@ function showPage(name){
   const navItems=document.querySelectorAll('.nav-item');
   if(navMap[name]!==undefined)navItems[navMap[name]].classList.add('active');
   if(name==='valuacion'||name==='refacciones'||name==='taller')actualizarTablasPendientes();
+  if(name==='dashboard-facturacion')cargarFact();
   if(name==='asesores'){var hoy=new Date();var dd=String(hoy.getDate()).padStart(2,'0');var mm=String(hoy.getMonth()+1).padStart(2,'0');var yyyy=hoy.getFullYear();var fechaEl=document.getElementById('as-fecha');if(fechaEl)fechaEl.value=yyyy+'-'+mm+'-'+dd;}
   if(name==='dashboard-trello')cargarTrello();
   if(name==='resumen')cargarDashboard();
