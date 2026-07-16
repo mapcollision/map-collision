@@ -365,7 +365,7 @@ textarea{resize:vertical;min-height:70px}
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="11" rx="1"/><rect x="10" y="3" width="5" height="7" rx="1"/><rect x="17" y="3" width="4" height="5" rx="1"/></svg>
         Dashboard
       </div>
-      <div class="nav-item" onclick="showPage('dashboard-facturacion')">
+      <div class="nav-item" id="nav-facturacion" style="display:none" onclick="showPage('dashboard-facturacion')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         Facturacion
       </div>
@@ -913,10 +913,11 @@ var usuarioEmail = '';
 const DIRECTIVOS_EMAILS = ['adriana.nafarrate.map@gmail.com','michelforsythmap@gmail.com','cooper.rob.six@gmail.com'];
 
 function revisarAccesoDirectivos() {
-  var nav = document.getElementById('nav-directivos');
-  if (!nav) return;
   var permitido = DIRECTIVOS_EMAILS.indexOf(usuarioEmail) >= 0;
-  nav.style.display = permitido ? 'flex' : 'none';
+  var navDir = document.getElementById('nav-directivos');
+  var navFact = document.getElementById('nav-facturacion');
+  if (navDir) navDir.style.display = permitido ? 'flex' : 'none';
+  if (navFact) navFact.style.display = permitido ? 'flex' : 'none';
 }
 
 function resetInactividad() {
@@ -2241,6 +2242,51 @@ async function toggleFacturado(evt, no, btnEl) {
 
 var _dirCharts = {};
 
+// Plugin generico: dibuja el numero de cada barra/segmento directo en la grafica
+const numeroEnGrafica = {
+  id: 'numeroEnGrafica',
+  afterDatasetsDraw(chart) {
+    var ctx = chart.ctx;
+    ctx.save();
+    ctx.font = 'bold 11px Segoe UI, sans-serif';
+    if (chart.config.type === 'doughnut') {
+      var meta = chart.getDatasetMeta(0);
+      meta.data.forEach(function(arco, i){
+        var val = chart.data.datasets[0].data[i];
+        if (!val) return;
+        var angle = (arco.startAngle + arco.endAngle) / 2;
+        var radio = (arco.innerRadius + arco.outerRadius) / 2;
+        var x = arco.x + Math.cos(angle) * radio;
+        var y = arco.y + Math.sin(angle) * radio;
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(val, x, y);
+      });
+    } else if (chart.config.type === 'bar') {
+      var horizontal = chart.options.indexAxis === 'y';
+      chart.data.datasets.forEach(function(ds, dIdx){
+        var m = chart.getDatasetMeta(dIdx);
+        m.data.forEach(function(barra, i){
+          var val = ds.data[i];
+          if (val === 0 || val === undefined || val === null) return;
+          ctx.fillStyle = '#2D3748';
+          if (horizontal) {
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(val, barra.x + 5, barra.y);
+          } else {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(val, barra.x, barra.y - 3);
+          }
+        });
+      });
+    }
+    ctx.restore();
+  }
+};
+
 function diffDias(fechaA, fechaB) {
   // dias entre fechaA y fechaB (ambas strings dd/mm/aaaa). null si alguna no parsea.
   var a = parseDate(String(fechaA||''));
@@ -2324,7 +2370,8 @@ async function cargarDirectivos() {
   _dirCharts.c1 = new Chart(document.getElementById('dir-c1'), {
     type:'doughnut',
     data:{ labels:['En tiempo','Fuera de tiempo'], datasets:[{ data:[actual.enTiempoCount, fueraTiempo], backgroundColor:['#276749','#C53030'] }] },
-    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } }
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } },
+    plugins:[numeroEnGrafica]
   });
 
   // Chart 2: siniestros por clasificacion (nuevas del mes)
@@ -2336,7 +2383,8 @@ async function cargarDirectivos() {
   _dirCharts.c2 = new Chart(document.getElementById('dir-c2'), {
     type:'bar',
     data:{ labels:clasifs, datasets:[{ data:conteoClasif, backgroundColor:'#2B6CB0' }] },
-    options:{ plugins:{ legend:{ display:false } } }
+    options:{ plugins:{ legend:{ display:false } } },
+    plugins:[numeroEnGrafica]
   });
 
   // Chart 3: clasificacion en tiempo vs fuera de tiempo (entregadas del mes)
@@ -2359,7 +2407,8 @@ async function cargarDirectivos() {
       { label:'En tiempo', data:enTiempoPorClasif, backgroundColor:'#276749' },
       { label:'Fuera de tiempo', data:fueraTiempoPorClasif, backgroundColor:'#C53030' }
     ]},
-    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } }, scales:{ x:{ stacked:true }, y:{ stacked:true } } }
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } }, scales:{ x:{ stacked:true }, y:{ stacked:true } } },
+    plugins:[numeroEnGrafica]
   });
 
   // Chart 4: entradas vs salidas por semana del mes
@@ -2385,7 +2434,8 @@ async function cargarDirectivos() {
       { label:'Entradas', data:entradasSemana, backgroundColor:'#E8640A' },
       { label:'Salidas', data:salidasSemana, backgroundColor:'#2B6CB0' }
     ]},
-    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } }
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } },
+    plugins:[numeroEnGrafica]
   });
 
   // Chart 5: conteo por tipo (nuevas del mes)
@@ -2397,7 +2447,8 @@ async function cargarDirectivos() {
   _dirCharts.c5 = new Chart(document.getElementById('dir-c5'), {
     type:'bar',
     data:{ labels:['GNP','Particular','Canceladas','Pérdida Total'], datasets:[{ data:[cGNP,cPart,cCancel,cPT], backgroundColor:['#2B6CB0','#E8640A','#718096','#805AD5'] }] },
-    options:{ indexAxis:'y', plugins:{ legend:{ display:false } } }
+    options:{ indexAxis:'y', plugins:{ legend:{ display:false } } },
+    plugins:[numeroEnGrafica]
   });
 
   // WIP hoy (foto actual, no depende del mes)
@@ -2419,7 +2470,7 @@ async function cargarDirectivos() {
 /* ==================== FIN DASHBOARD DIRECTIVOS ==================== */
 
 function showPage(name){
-  if(name==='dashboard-directivos' && DIRECTIVOS_EMAILS.indexOf(usuarioEmail)<0){
+  if((name==='dashboard-directivos'||name==='dashboard-facturacion') && DIRECTIVOS_EMAILS.indexOf(usuarioEmail)<0){
     toast('No tienes acceso a esta seccion','error');
     return;
   }
