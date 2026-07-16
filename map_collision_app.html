@@ -242,9 +242,28 @@ textarea{resize:vertical;min-height:70px}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--gris-borde);border-radius:3px}
-.fc-no{font-size:11px;font-weight:800;color:var(--azul)}
-.fc-cliente{font-size:9px;color:var(--gris-medio);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fact-check-label{line-height:1.15}
+
+/* Dashboard Facturacion */
+.fb-col{background:rgba(255,255,255,.5);border-radius:10px;padding:10px}
+.fb-col-header{padding:8px 10px;border-radius:7px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.fb-col-header h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:white;margin:0}
+.fb-col-count{background:rgba(255,255,255,.25);color:white;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.fb-col-body{display:flex;flex-wrap:wrap;gap:8px}
+.fb-card{background:var(--blanco);border-radius:7px;box-shadow:var(--shadow-sm);cursor:pointer;overflow:hidden;padding:8px 9px;flex:1 1 128px;min-width:128px;transition:all .15s}
+.fb-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.fb-card.gris{background:#F7F8FA;border:1px solid #CBD5E0;border-top:3px solid var(--gris-medio)}
+.fb-card.rojo{background:#FFF5F5;border:1px solid #FEB2B2;border-top:3px solid var(--rojo)}
+.fb-card.verde{background:#F0FFF4;border:1px solid #9AE6B4;border-top:3px solid var(--verde)}
+.fb-icon{display:flex;justify-content:center;margin-bottom:3px}
+.fb-icon svg{width:52px;height:32px}
+.fb-orden{font-size:12px;font-weight:700;color:var(--azul);text-align:center}
+.fb-unidad{font-size:9.5px;color:var(--gris-medio);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb-line{font-size:8.5px;color:var(--gris-medio);margin-top:4px;line-height:1.35}
+.fb-line b{color:var(--gris-oscuro);font-weight:600}
+.fb-check-area{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:5px;background:#FFF5F5;border-radius:5px;padding:4px 6px;border:1px dashed #FEB2B2}
+.fb-check-label{font-size:7.5px;color:var(--rojo);font-weight:700;line-height:1.15}
+.fb-check-box{width:19px;height:19px;min-width:19px;border-radius:4px;border:2px solid #FC8181;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;font-size:12px;font-weight:700;color:white;flex-shrink:0}
+.fb-badge{display:block;background:var(--verde);color:white;font-size:8px;font-weight:700;padding:3px 6px;border-radius:9px;text-align:center;margin-top:5px}
 </style>
 </head>
 <body>
@@ -526,7 +545,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Pedido INPART</label><input type="text" id="ref-inpart"></div>
               <div class="form-group"><label>T.O.T.</label><input type="text" id="ref-tot"></div>
               <div class="form-group"><label>Status Refacciones</label>
-                <select id="ref-status">
+                <select id="ref-status" onchange="toggleAutoFechaRef()">
                   <option value="">Seleccionar...</option>
                   <option>Pendiente Ref.</option>
                   <option>Unidad Completa</option>
@@ -590,7 +609,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Pulido %</label><select id="tall-p-pul"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>T.O.T. %</label><select id="tall-p-tot"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>Trabajo Terminado</label><input type="date" id="tall-terminado"></div>
-              <div class="form-group"><label>Status</label><select id="tall-status"><option value="">—</option><option>En transito</option><option>En reparacion</option><option>Vale</option><option>Entregado</option><option>Cancelado</option></select></div>
+              <div class="form-group"><label>Status</label><select id="tall-status" onchange="toggleAutoFechaTaller()"><option value="">—</option><option>En transito</option><option>En reparacion</option><option>Vale</option><option>Entregado</option><option>Cancelado</option></select></div>
               <div class="form-group"><label>Fecha de Entrega</label><input type="date" id="tall-fecha-entrega"></div>
             </div>
             <div class="btn-group">
@@ -1524,19 +1543,46 @@ function abrirRef(noOrden) {
   setDateInput('ref-fecha-ini',IDX.fechaIniRef);setDateInput('ref-fecha-fin',IDX.fechaFinRef);
   setVal('ref-inpart',IDX.pedidoImpart);setVal('ref-tot',IDX.tot);setVal('ref-comentario',IDX.comentarioRef);
   setVal('ref-status',IDX.statusRef);setVal('ref-pz-surt',IDX.pzSurtidas);setVal('ref-pz-salv',IDX.pzSalvadas);
-  setVal('ref-coment-pz',IDX.comentarioPzSalvamento);calcRefacciones();
+  setVal('ref-coment-pz',IDX.comentarioPzSalvamento);calcRefacciones();toggleAutoFechaRef();
   document.getElementById('ref-form-title').textContent='Refacciones - Orden '+noOrden;
   document.getElementById('ref-form-card').style.display='block';
   document.getElementById('ref-form-card').scrollIntoView({behavior:'smooth'});
 }
 function calcRefacciones(){const surt=parseInt(v('ref-pz-surt'))||0,salv=parseInt(v('ref-pz-salv'))||0,total=parseInt(v('ref-val-piezas'))||0,suma=surt+salv;let r='';if(v('ref-pz-surt')!==''||v('ref-pz-salv')!==''){if(suma===total)r='Completo';else if(suma<total)r='Faltan '+(total-suma)+' pz.';else r='Excede por '+(suma-total)+' pz.';}document.getElementById('ref-total-pz').value=r;}
+
+function toggleAutoFechaRef(){
+  var sel=document.getElementById('ref-status'), inp=document.getElementById('ref-fecha-fin');
+  if(!sel||!inp) return;
+  if(sel.value.trim().toLowerCase()==='unidad completa'){
+    inp.readOnly=true; inp.classList.add('auto');
+    if(!inp.value){var h=new Date();inp.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');}
+  } else {
+    inp.readOnly=false; inp.classList.remove('auto');
+  }
+}
+function toggleAutoFechaTaller(){
+  var sel=document.getElementById('tall-status'), inp=document.getElementById('tall-fecha-entrega');
+  if(!sel||!inp) return;
+  if(sel.value.trim().toLowerCase()==='entregado'){
+    inp.readOnly=true; inp.classList.add('auto');
+    if(!inp.value){var h=new Date();inp.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');}
+  } else {
+    inp.readOnly=false; inp.classList.remove('auto');
+  }
+}
 async function guardarRefacciones(){
   if(!ordenActual)return;
   if(!v('ref-fecha-ini')){toast('Ingresa la Fecha Inicial de Refacciones','error');return;}
   if(!v('ref-status')){toast('Selecciona el Status de Refacciones','error');return;}
   if(v('ref-pz-surt')===''){toast('Ingresa las Piezas Surtidas','error');return;}
   const row=[...ordenActual];while(row.length<MIN_LEN)row.push('');
-  row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.fechaFinRef]=v('ref-fecha-fin');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
+  row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
+  var fechaFinExistente=getField(ordenActual,IDX.fechaFinRef);
+  if(v('ref-status').trim().toLowerCase()==='unidad completa'){
+    row[IDX.fechaFinRef] = (fechaFinExistente&&fechaFinExistente.trim()) ? fechaFinExistente : formatDateMX(new Date());
+  } else {
+    row[IDX.fechaFinRef]=v('ref-fecha-fin');
+  }
   row[IDX.historial]=registrarCambio(row[0],'Refacciones');while(row.length<MIN_LEN)row.push('');
   try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":"+ULTIMA_COL+ordenActualFila,[row]);toast('Refacciones guardadas OK','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}
 }
@@ -1559,7 +1605,7 @@ function abrirTall(noOrden){
   setVal('tall-p-hoj',IDX.pHojalateria);setVal('tall-p-mec',IDX.pMecanica);setVal('tall-p-prep',IDX.pPrepPintura);
   setVal('tall-p-pint',IDX.pPintura);setVal('tall-p-arm',IDX.pArmado);setVal('tall-p-pul',IDX.pPulido);
   setVal('tall-p-tot',IDX.pTot);setDateInput('tall-terminado',IDX.trabajoTerminado);
-  setVal('tall-status',IDX.statusTaller);setDateInput('tall-fecha-entrega',IDX.fechaEntrega);
+  setVal('tall-status',IDX.statusTaller);setDateInput('tall-fecha-entrega',IDX.fechaEntrega);toggleAutoFechaTaller();
   document.getElementById('tall-form-title').textContent='Taller - Orden '+noOrden;
   document.getElementById('tall-form-card').style.display='block';
   document.getElementById('tall-form-card').scrollIntoView({behavior:'smooth'});
@@ -1575,7 +1621,13 @@ async function guardarTaller(){
   row[IDX.pHojalateria]=v('tall-p-hoj');row[IDX.pMecanica]=v('tall-p-mec');row[IDX.pPrepPintura]=v('tall-p-prep');
   row[IDX.pPintura]=v('tall-p-pint');row[IDX.pArmado]=v('tall-p-arm');row[IDX.pPulido]=v('tall-p-pul');
   row[IDX.pTot]=v('tall-p-tot');row[IDX.trabajoTerminado]=v('tall-terminado');
-  row[IDX.statusTaller]=v('tall-status');row[IDX.fechaEntrega]=v('tall-fecha-entrega');
+  row[IDX.statusTaller]=v('tall-status');
+  var fechaEntExistente=getField(ordenActual,IDX.fechaEntrega);
+  if(v('tall-status').trim().toLowerCase()==='entregado'){
+    row[IDX.fechaEntrega] = (fechaEntExistente&&fechaEntExistente.trim()) ? fechaEntExistente : formatDateMX(new Date());
+  } else {
+    row[IDX.fechaEntrega]=v('tall-fecha-entrega');
+  }
   row[IDX.historial]=registrarCambio(row[0],'Taller');while(row.length<MIN_LEN)row.push('');
   try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":"+ULTIMA_COL+ordenActualFila,[row]);toast('Taller guardado OK','success');cerrarFormTall();await cargarBD();actualizarTablasPendientes();}
   catch(e){toast('Error: '+e.message,'error');}
@@ -1789,7 +1841,11 @@ async function actualizarOrden(){
     }
   }
   row[IDX.fechaIniRef]=bvDate('b-refini',IDX.fechaIniRef);
-  row[IDX.fechaFinRef]=bvDate('b-reffin',IDX.fechaFinRef);
+  var estadoRefFinal = bvOrKeep('b-statusref',IDX.statusRef).trim().toLowerCase();
+  var fechaFinExistenteB = row[IDX.fechaFinRef];
+  row[IDX.fechaFinRef] = (estadoRefFinal==='unidad completa')
+    ? ((fechaFinExistenteB&&fechaFinExistenteB.trim()) ? fechaFinExistenteB : formatDateMX(new Date()))
+    : bvDate('b-reffin',IDX.fechaFinRef);
   row[IDX.pedidoImpart]=bv('b-inpart');
   row[IDX.tot]=bv('b-tot');
   row[IDX.comentarioRef]=bv('b-comref');
@@ -1813,8 +1869,12 @@ async function actualizarOrden(){
   row[IDX.pPulido]=bvOrKeep('b-ppul',IDX.pPulido);
   row[IDX.pTot]=bvOrKeep('b-ptot',IDX.pTot);
   row[IDX.trabajoTerminado]=bvDate('b-tterm',IDX.trabajoTerminado);
+  var estadoTallerFinal = bvOrKeep('b-stall',IDX.statusTaller).trim().toLowerCase();
+  var fechaEntExistenteB = row[IDX.fechaEntrega];
   row[IDX.statusTaller]=bvOrKeep('b-stall',IDX.statusTaller);
-  row[IDX.fechaEntrega]=bvDate('b-fentrega',IDX.fechaEntrega);
+  row[IDX.fechaEntrega] = (estadoTallerFinal==='entregado')
+    ? ((fechaEntExistenteB&&fechaEntExistenteB.trim()) ? fechaEntExistenteB : formatDateMX(new Date()))
+    : bvDate('b-fentrega',IDX.fechaEntrega);
   row[IDX.facturado]=bvOrKeep('b-facturado',IDX.facturado);
 
   row[IDX.historial] = registrarCambio(row[0], 'Busqueda actualizada');
@@ -1956,71 +2016,122 @@ function limpiarForm(prefix){document.querySelectorAll('[id^="'+prefix+'-"]').fo
 
 /* ==================== DASHBOARD FACTURACION (NUEVO) ==================== */
 
+const DIAS_VIDA_FACTURADO = 15;
+
 function clasificarFact(row) {
-  var facturado   = String(getField(row, IDX.facturado)||'').trim().toLowerCase();
-  var complemento = String(getField(row, IDX.complemento)||'').trim().toLowerCase();
-  var statusTaller= String(getField(row, IDX.statusTaller)||'').trim().toLowerCase();
+  var statusVal    = String(getField(row, IDX.statusVal)||'').trim().toLowerCase();
+  var statusTaller = String(getField(row, IDX.statusTaller)||'').trim().toLowerCase();
+  var facturado    = String(getField(row, IDX.facturado)||'').trim().toLowerCase();
 
   if (facturado === 'si') return 'facturado';
-  if (complemento === 'si') return 'complemento';
-  // Ajusta esta condicion si "listo para facturar" debe incluir otros status
-  if (statusTaller === 'entregado' || statusTaller === 'vale') return 'pendiente';
+  if (statusVal === 'complemento') return 'complemento';
+  if (statusVal === 'autorizada' && statusTaller === 'entregado') return 'pendiente';
   return null;
+}
+
+// Fecha en que se marco como Facturado, tomada del Historial (unico lugar donde queda ese registro,
+// ya que en BD (columna Facturado) solo se guarda "Si"/blanco, sin fecha).
+function fechaMarcadoFacturado(row) {
+  var hist = String(getField(row, IDX.historial)||'');
+  if (hist.toLowerCase().indexOf('facturado') === -1) return null;
+  var datePart = hist.split(' ')[0];
+  return parseDate(datePart);
+}
+
+function textoRelativoDias(fecha) {
+  if (!fecha) return 'Facturado';
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var f = new Date(fecha); f.setHours(0,0,0,0);
+  var diff = Math.round((hoy - f) / 86400000);
+  if (diff <= 0) return 'Hoy';
+  if (diff === 1) return 'Hace 1d';
+  return 'Hace ' + diff + 'd';
 }
 
 async function cargarFact(skipReload) {
   if (!skipReload) await cargarBD();
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
   var grupos = { complemento:[], pendiente:[], facturado:[] };
+
   dbData.forEach(function(row){
     if (!getField(row, IDX.noOrden)) return;
     var cat = clasificarFact(row);
-    if (cat && grupos[cat]) grupos[cat].push(row);
+    if (!cat || !grupos[cat]) return;
+    if (cat === 'facturado') {
+      var fechaMarc = fechaMarcadoFacturado(row);
+      // Si se puede determinar la fecha y ya paso el tiempo de vida, se oculta del dashboard
+      // (el valor "Si" se queda igual en BD, solo deja de mostrarse aqui).
+      if (fechaMarc) {
+        var dias = Math.round((hoy - fechaMarc) / 86400000);
+        if (dias > DIAS_VIDA_FACTURADO) return;
+      }
+    }
+    grupos[cat].push(row);
+  });
+
+  // Facturado: las mas recientes arriba, las mas viejas abajo
+  grupos.facturado.sort(function(a, b){
+    var da = fechaMarcadoFacturado(a) || new Date(0);
+    var db = fechaMarcadoFacturado(b) || new Date(0);
+    return db - da;
   });
 
   var cols = [
-    { id:'complemento', titulo:'Con Complemento',         color:'var(--gris-medio)' },
-    { id:'pendiente',   titulo:'Pendiente por Facturar',  color:'var(--rojo)' },
-    { id:'facturado',   titulo:'Facturado',               color:'var(--verde)' }
+    { id:'complemento', titulo:'Ordenes con Complemento',  color:'var(--gris-medio)' },
+    { id:'pendiente',   titulo:'Pendiente por Facturar',   color:'var(--rojo)' },
+    { id:'facturado',   titulo:'Facturado',                color:'var(--verde)' }
   ];
 
   var board = document.getElementById('fact-board');
   board.innerHTML = cols.map(function(c){
     var cards = grupos[c.id].map(function(row){ return factCard(row, c.id); }).join('');
-    if (!cards) cards = '<div style="grid-column:1/-1;font-size:11px;color:var(--gris-medio);text-align:center;padding:16px">Sin ordenes</div>';
-    return '<div class="fact-col">'
-      +'<div class="fact-col-header" style="background:'+c.color+'">'
-      +'<h3>'+c.titulo+'</h3><span class="fact-col-count">'+grupos[c.id].length+'</span>'
+    if (!cards) cards = '<div style="width:100%;font-size:11px;color:var(--gris-medio);text-align:center;padding:16px">Sin ordenes</div>';
+    return '<div class="fb-col">'
+      +'<div class="fb-col-header" style="background:'+c.color+'">'
+      +'<h3>'+c.titulo+'</h3><span class="fb-col-count">'+grupos[c.id].length+'</span>'
       +'</div>'
-      +'<div class="fact-cards-grid">'+cards+'</div>'
+      +'<div class="fb-col-body">'+cards+'</div>'
       +'</div>';
   }).join('');
 }
 
 function factCard(row, cat) {
-  var no     = getField(row, IDX.noOrden);
-  var unidad = getField(row, IDX.tipoUnidad) || '';
-  var placas = getField(row, IDX.placas) || '';
-  var sub    = unidad + (placas ? ' · '+placas : '');
-  var cls    = cat === 'facturado' ? 'verde' : (cat === 'pendiente' ? 'rojo' : 'gris');
+  var no        = getField(row, IDX.noOrden);
+  var unidad    = getField(row, IDX.tipoUnidad) || '';
+  var statusVal = getField(row, IDX.statusVal) || '-';
+  var statusTal = getField(row, IDX.statusTaller) || '-';
+  var fechaEnt  = getField(row, IDX.fechaEntrega) || '-';
+  var cls       = cat === 'facturado' ? 'verde' : (cat === 'pendiente' ? 'rojo' : 'gris');
+  var carColor  = colorAuto(getField(row, IDX.color));
 
-  var extra = '';
-  if (cat === 'pendiente') {
-    extra = '<div class="fact-check-area">'
-      + '<span class="fact-check-label">Marcar<br>Facturado</span>'
-      + '<div class="fact-check-box" onclick="toggleFacturado(\''+no+'\', this)">&#10003;</div>'
-      + '</div>';
-  } else if (cat === 'facturado') {
-    extra = '<span class="fact-badge">&#10003; Facturado</span>';
+  var cuerpo;
+  if (cat === 'facturado') {
+    var badgeTxt = textoRelativoDias(fechaMarcadoFacturado(row));
+    cuerpo = '<div class="fb-orden">'+no+'</div>'
+      + '<div class="fb-unidad">'+(unidad||'-')+'</div>'
+      + '<span class="fb-badge">&#10003; '+badgeTxt+'</span>';
+  } else {
+    cuerpo = '<div class="fb-orden">'+no+'</div>'
+      + '<div class="fb-unidad">'+(unidad||'-')+'</div>'
+      + '<div class="fb-line">Val: <b>'+statusVal+'</b></div>'
+      + '<div class="fb-line">Taller: <b>'+statusTal+'</b></div>'
+      + '<div class="fb-line">Ent: <b>'+fechaEnt+'</b></div>';
+    if (cat === 'pendiente') {
+      cuerpo += '<div class="fb-check-area">'
+        + '<span class="fb-check-label">Marcar<br>Facturado</span>'
+        + '<div class="fb-check-box" onclick="toggleFacturado(event,\''+no+'\', this)">&#10003;</div>'
+        + '</div>';
+    }
   }
-  return '<div class="fact-card '+cls+'" onclick="abrirModal(\''+no+'\')">'
-    + '<div class="fc-no">'+no+'</div>'
-    + '<div class="fc-cliente">'+(sub||'-')+'</div>'
-    + extra
+
+  return '<div class="fb-card '+cls+'" onclick="abrirModal(\''+no+'\')">'
+    + '<div class="fb-icon">'+svgAuto(carColor)+'</div>'
+    + cuerpo
     + '</div>';
 }
 
-async function toggleFacturado(no, btnEl) {
-  if (btnEl) { event.stopPropagation(); }
+async function toggleFacturado(evt, no, btnEl) {
+  if (evt) evt.stopPropagation();
   var idx = findRow(no);
   if (idx < 0) { toast('Orden '+no+' no encontrada','error'); return; }
   if (btnEl) { btnEl.style.opacity = '0.4'; btnEl.style.pointerEvents = 'none'; }
