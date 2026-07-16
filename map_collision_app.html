@@ -6,6 +6,7 @@
 <title>MAP COLLISION CENTER</title>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root {
   --naranja:#E8640A; --naranja-dark:#B84E08; --naranja-light:#FDE8D8;
@@ -264,6 +265,25 @@ textarea{resize:vertical;min-height:70px}
 .fb-check-label{font-size:7.5px;color:var(--rojo);font-weight:700;line-height:1.15}
 .fb-check-box{width:19px;height:19px;min-width:19px;border-radius:4px;border:2px solid #FC8181;display:flex;align-items:center;justify-content:center;cursor:pointer;background:white;font-size:12px;font-weight:700;color:white;flex-shrink:0}
 .fb-badge{display:block;background:var(--verde);color:white;font-size:8px;font-weight:700;padding:3px 6px;border-radius:9px;text-align:center;margin-top:5px}
+
+/* Dashboard Directivos */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+.kpi-row.tres{grid-template-columns:repeat(3,1fr)}
+.kpi-card{background:var(--blanco);border-radius:10px;box-shadow:var(--shadow-sm);padding:14px}
+.kpi-label{font-size:10.5px;color:var(--gris-medio);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.kpi-value{font-size:26px;font-weight:800;color:var(--azul);margin-top:4px}
+.kpi-sub{font-size:10.5px;color:var(--gris-medio);margin-top:4px}
+.kpi-trend{font-size:10.5px;font-weight:700;margin-top:4px}
+.trend-up{color:var(--verde)} .trend-down{color:var(--rojo)} .trend-flat{color:var(--gris-medio)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.chart-card{background:var(--blanco);border-radius:10px;box-shadow:var(--shadow-sm);padding:14px}
+.chart-card h4{font-size:12px;color:var(--azul);margin-bottom:8px}
+.chart-card.full{grid-column:1/-1}
+.chart-card canvas{max-height:230px}
+.funnel{display:flex;gap:8px}
+.funnel-step{flex:1;background:var(--azul-claro);border-radius:8px;padding:10px;text-align:center}
+.funnel-step b{display:block;font-size:20px;color:var(--azul-medio)}
+.funnel-step span{font-size:10px;color:var(--gris-medio)}
 </style>
 </head>
 <body>
@@ -348,6 +368,10 @@ textarea{resize:vertical;min-height:70px}
       <div class="nav-item" onclick="showPage('dashboard-facturacion')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         Facturacion
+      </div>
+      <div class="nav-item" id="nav-directivos" style="display:none" onclick="showPage('dashboard-directivos')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-9 0h14a2 2 0 002-2V9.5a1 1 0 00-.386-.79l-6-4.62a1 1 0 00-1.228 0l-6 4.62A1 1 0 004 9.5V17a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21h16M6 21v-4m12 4v-4"/></svg>
+        Directivos
       </div>
       <div class="nav-item" onclick="exportarExcel()">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -631,6 +655,48 @@ textarea{resize:vertical;min-height:70px}
         </div>
       </div>
 
+      <!-- DASHBOARD DIRECTIVOS -->
+      <div id="page-dashboard-directivos" class="page">
+        <div class="page-header">
+          <h2>Dashboard Directivos <span id="dir-mes-badge" style="background:var(--azul-claro);color:var(--azul-medio);font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-left:8px"></span></h2>
+          <button class="btn btn-primary btn-sm" onclick="cargarDirectivos()">&#8635; Actualizar</button>
+        </div>
+
+        <p class="subheader">Conteo del Mes</p>
+        <div class="kpi-row">
+          <div class="kpi-card"><div class="kpi-label">Órdenes Nuevas</div><div class="kpi-value" id="dir-nuevas">-</div><div class="kpi-trend" id="dir-trend-nuevas"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Entregadas</div><div class="kpi-value" id="dir-entregadas">-</div><div class="kpi-trend" id="dir-trend-entregadas"></div></div>
+          <div class="kpi-card"><div class="kpi-label">Tiempo Prom. Entrega</div><div class="kpi-value" id="dir-tiempo-entrega">-</div><div class="kpi-sub">Autorizada → Entrega</div></div>
+          <div class="kpi-card"><div class="kpi-label">Cumplimiento Fechas</div><div class="kpi-value" id="dir-cumplimiento">-</div><div class="kpi-sub" id="dir-cumplimiento-sub"></div></div>
+        </div>
+
+        <p class="subheader">Tiempos Promedio por Etapa (mes)</p>
+        <div class="kpi-row tres">
+          <div class="kpi-card"><div class="kpi-label">Valuación</div><div class="kpi-value" id="dir-t-valuacion">-</div><div class="kpi-sub">Ingreso → Autorizada</div></div>
+          <div class="kpi-card"><div class="kpi-label">Refacciones</div><div class="kpi-value" id="dir-t-refacciones">-</div><div class="kpi-sub">Autorizada → Fin Ref.</div></div>
+          <div class="kpi-card"><div class="kpi-label">Taller</div><div class="kpi-value" id="dir-t-taller">-</div><div class="kpi-sub">Unidad Completa → Entrega</div></div>
+        </div>
+
+        <p class="subheader">Cumplimiento y Clasificación</p>
+        <div class="charts-row">
+          <div class="chart-card"><h4>En Tiempo vs Fuera de Tiempo</h4><canvas id="dir-c1"></canvas></div>
+          <div class="chart-card"><h4>Siniestros por Clasificación (nuevas del mes)</h4><canvas id="dir-c2"></canvas></div>
+          <div class="chart-card full"><h4>Clasificación: En Tiempo vs Fuera de Tiempo</h4><canvas id="dir-c3"></canvas></div>
+          <div class="chart-card full"><h4>Entradas vs Salidas por Semana</h4><canvas id="dir-c4"></canvas></div>
+          <div class="chart-card full"><h4>Conteo por Tipo (nuevas del mes)</h4><canvas id="dir-c5"></canvas></div>
+        </div>
+
+        <p class="subheader">Órdenes Activas por Etapa (hoy)</p>
+        <div class="chart-card">
+          <div class="funnel">
+            <div class="funnel-step"><b id="dir-wip-val">-</b><span>En Valuación</span></div>
+            <div class="funnel-step"><b id="dir-wip-ref">-</b><span>En Refacciones</span></div>
+            <div class="funnel-step"><b id="dir-wip-tall">-</b><span>En Taller</span></div>
+            <div class="funnel-step"><b id="dir-wip-vale">-</b><span>Vale / Espera</span></div>
+          </div>
+        </div>
+      </div>
+
       <!-- BUSQUEDA -->
       <div id="page-busqueda" class="page">
         <div class="page-header"><h2>Búsqueda y Actualización</h2></div>
@@ -784,9 +850,11 @@ function iniciarSesion() {
             .then(function(uinfo){
               if(uinfo && (uinfo.name||uinfo.email)) {
                 usuarioActual = uinfo.name||uinfo.email;
+                usuarioEmail = String(uinfo.email||'').trim().toLowerCase();
                 try{ localStorage.setItem('mcc_usuario', usuarioActual); }catch(e){}
                 document.getElementById('user-name').textContent=usuarioActual;
                 document.getElementById('user-avatar').src=uinfo.picture||'';
+                revisarAccesoDirectivos();
               }
             }).catch(function(e){
               try{
@@ -841,6 +909,15 @@ async function apiAppend(range, values) {
 var timerInactividad;
 var TIEMPO_INACTIVIDAD = 10 * 60 * 1000;
 var usuarioActual = 'Usuario';
+var usuarioEmail = '';
+const DIRECTIVOS_EMAILS = ['adriana.nafarrate.map@gmail.com','michelforsythmap@gmail.com','cooper.rob.six@gmail.com'];
+
+function revisarAccesoDirectivos() {
+  var nav = document.getElementById('nav-directivos');
+  if (!nav) return;
+  var permitido = DIRECTIVOS_EMAILS.indexOf(usuarioEmail) >= 0;
+  nav.style.display = permitido ? 'flex' : 'none';
+}
 
 function resetInactividad() {
   clearTimeout(timerInactividad);
@@ -2160,21 +2237,206 @@ async function toggleFacturado(evt, no, btnEl) {
 
 /* ==================== FIN DASHBOARD FACTURACION ==================== */
 
+/* ==================== DASHBOARD DIRECTIVOS ==================== */
+
+var _dirCharts = {};
+
+function diffDias(fechaA, fechaB) {
+  // dias entre fechaA y fechaB (ambas strings dd/mm/aaaa). null si alguna no parsea.
+  var a = parseDate(String(fechaA||''));
+  var b = parseDate(String(fechaB||''));
+  if (!a || !b || isNaN(a.getTime()) || isNaN(b.getTime())) return null;
+  return Math.round((b - a) / 86400000);
+}
+
+function promedio(arr) {
+  var valid = arr.filter(function(n){ return n !== null && !isNaN(n); });
+  if (!valid.length) return null;
+  return valid.reduce(function(a,b){ return a+b; }, 0) / valid.length;
+}
+
+function enMes(fechaStr, mes, anio) {
+  var f = parseDate(String(fechaStr||''));
+  return f && !isNaN(f.getTime()) && f.getMonth()===mes && f.getFullYear()===anio;
+}
+
+function destruirChart(id) {
+  if (_dirCharts[id]) { _dirCharts[id].destroy(); delete _dirCharts[id]; }
+}
+
+async function cargarDirectivos() {
+  await cargarBD();
+  var hoy = new Date();
+  var mes = hoy.getMonth(), anio = hoy.getFullYear();
+  var mesAnt = mes===0?11:mes-1, anioAnt = mes===0?anio-1:anio;
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var badge=document.getElementById('dir-mes-badge'); if(badge) badge.textContent=meses[mes]+' '+anio;
+
+  function calcularKPIs(mesC, anioC) {
+    var nuevas = dbData.filter(function(r){ return r[IDX.noOrden] && enMes(r[IDX.fechaIngreso], mesC, anioC); });
+    var entregadas = dbData.filter(function(r){
+      return r[IDX.noOrden] && String(r[IDX.statusTaller]||'').trim().toLowerCase()==='entregado' && enMes(r[IDX.fechaEntrega], mesC, anioC);
+    });
+    var tiemposEntrega = entregadas.map(function(r){ return diffDias(r[IDX.fechaValFinal], r[IDX.fechaEntrega]); });
+    var enTiempoCount = entregadas.filter(function(r){
+      var real=parseDate(String(r[IDX.fechaEntrega]||'')), calc=parseDate(String(r[IDX.fechaEntregaCalc]||''));
+      return real && calc && !isNaN(real.getTime()) && !isNaN(calc.getTime()) && real <= calc;
+    }).length;
+    var cumplimiento = entregadas.length ? Math.round((enTiempoCount/entregadas.length)*100) : null;
+    return { nuevas:nuevas.length, entregadas:entregadas.length, tiempoEntregaProm:promedio(tiemposEntrega), cumplimiento:cumplimiento, entregadasArr:entregadas, nuevasArr:nuevas, enTiempoCount:enTiempoCount };
+  }
+
+  var actual = calcularKPIs(mes, anio);
+  var anterior = calcularKPIs(mesAnt, anioAnt);
+
+  function pintarTrend(elId, valActual, valAnterior, invertir) {
+    var el = document.getElementById(elId); if(!el) return;
+    if (valAnterior===null || valAnterior===undefined || valActual===null) { el.textContent=''; return; }
+    var diff = valActual - valAnterior;
+    if (Math.abs(diff) < 0.05) { el.className='kpi-trend trend-flat'; el.textContent='— igual que el mes pasado'; return; }
+    var mejora = invertir ? diff < 0 : diff > 0;
+    el.className = 'kpi-trend ' + (mejora ? 'trend-up' : 'trend-down');
+    el.textContent = (diff > 0 ? '▲ ' : '▼ ') + Math.abs(Math.round(diff*10)/10) + ' vs mes ant.';
+  }
+
+  document.getElementById('dir-nuevas').textContent = actual.nuevas;
+  pintarTrend('dir-trend-nuevas', actual.nuevas, anterior.nuevas, false);
+  document.getElementById('dir-entregadas').textContent = actual.entregadas;
+  pintarTrend('dir-trend-entregadas', actual.entregadas, anterior.entregadas, false);
+  document.getElementById('dir-tiempo-entrega').innerHTML = actual.tiempoEntregaProm!==null ? actual.tiempoEntregaProm.toFixed(1)+'<span style="font-size:13px">d</span>' : '-';
+  document.getElementById('dir-cumplimiento').textContent = actual.cumplimiento!==null ? actual.cumplimiento+'%' : '-';
+  document.getElementById('dir-cumplimiento-sub').textContent = actual.entregadas ? (actual.enTiempoCount+' de '+actual.entregadas+' en tiempo') : 'Sin entregas este mes';
+
+  // Tiempos promedio por etapa
+  var cohortVal = dbData.filter(function(r){ return r[IDX.noOrden] && String(r[IDX.statusVal]||'').trim().toLowerCase()==='autorizada' && enMes(r[IDX.fechaValFinal], mes, anio); });
+  var tProm_val = promedio(cohortVal.map(function(r){ return diffDias(r[IDX.fechaIngreso], r[IDX.fechaValFinal]); }));
+  var cohortRef = dbData.filter(function(r){ return r[IDX.noOrden] && String(r[IDX.statusRef]||'').trim().toLowerCase()==='unidad completa' && enMes(r[IDX.fechaFinRef], mes, anio); });
+  var tProm_ref = promedio(cohortRef.map(function(r){ return diffDias(r[IDX.fechaValFinal], r[IDX.fechaFinRef]); }));
+  var cohortTall = dbData.filter(function(r){ return r[IDX.noOrden] && String(r[IDX.statusTaller]||'').trim().toLowerCase()==='entregado' && enMes(r[IDX.fechaEntrega], mes, anio); });
+  var tProm_tall = promedio(cohortTall.map(function(r){ return diffDias(r[IDX.fechaFinRef], r[IDX.fechaEntrega]); }));
+  document.getElementById('dir-t-valuacion').innerHTML   = tProm_val!==null  ? tProm_val.toFixed(1)+'<span style="font-size:13px">d</span>'  : '-';
+  document.getElementById('dir-t-refacciones').innerHTML = tProm_ref!==null  ? tProm_ref.toFixed(1)+'<span style="font-size:13px">d</span>'  : '-';
+  document.getElementById('dir-t-taller').innerHTML      = tProm_tall!==null ? tProm_tall.toFixed(1)+'<span style="font-size:13px">d</span>' : '-';
+
+  // Chart 1: en tiempo vs fuera de tiempo (donut)
+  destruirChart('c1');
+  var fueraTiempo = actual.entregadas - actual.enTiempoCount;
+  _dirCharts.c1 = new Chart(document.getElementById('dir-c1'), {
+    type:'doughnut',
+    data:{ labels:['En tiempo','Fuera de tiempo'], datasets:[{ data:[actual.enTiempoCount, fueraTiempo], backgroundColor:['#276749','#C53030'] }] },
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } }
+  });
+
+  // Chart 2: siniestros por clasificacion (nuevas del mes)
+  var clasifs = ['Express','Leve','Medio','Fuerte','Severo','Sin Clasificar'];
+  var conteoClasif = clasifs.map(function(c){
+    return actual.nuevasArr.filter(function(r){ return (String(r[IDX.clasificacion]||'').trim()||'Sin Clasificar') === c; }).length;
+  });
+  destruirChart('c2');
+  _dirCharts.c2 = new Chart(document.getElementById('dir-c2'), {
+    type:'bar',
+    data:{ labels:clasifs, datasets:[{ data:conteoClasif, backgroundColor:'#2B6CB0' }] },
+    options:{ plugins:{ legend:{ display:false } } }
+  });
+
+  // Chart 3: clasificacion en tiempo vs fuera de tiempo (entregadas del mes)
+  var enTiempoPorClasif = clasifs.map(function(c){
+    return actual.entregadasArr.filter(function(r){
+      var cl = String(r[IDX.clasificacion]||'').trim()||'Sin Clasificar';
+      if (cl !== c) return false;
+      var real=parseDate(String(r[IDX.fechaEntrega]||'')), calc=parseDate(String(r[IDX.fechaEntregaCalc]||''));
+      return real && calc && real <= calc;
+    }).length;
+  });
+  var fueraTiempoPorClasif = clasifs.map(function(c,i){
+    var total = actual.entregadasArr.filter(function(r){ return (String(r[IDX.clasificacion]||'').trim()||'Sin Clasificar') === c; }).length;
+    return total - enTiempoPorClasif[i];
+  });
+  destruirChart('c3');
+  _dirCharts.c3 = new Chart(document.getElementById('dir-c3'), {
+    type:'bar',
+    data:{ labels:clasifs, datasets:[
+      { label:'En tiempo', data:enTiempoPorClasif, backgroundColor:'#276749' },
+      { label:'Fuera de tiempo', data:fueraTiempoPorClasif, backgroundColor:'#C53030' }
+    ]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } }, scales:{ x:{ stacked:true }, y:{ stacked:true } } }
+  });
+
+  // Chart 4: entradas vs salidas por semana del mes
+  var diasEnMes = new Date(anio, mes+1, 0).getDate();
+  var numSemanas = Math.ceil(diasEnMes/7);
+  var labelsSemana = [], entradasSemana = [], salidasSemana = [];
+  for (var s=0; s<numSemanas; s++) {
+    labelsSemana.push('Sem '+(s+1));
+    var diaIni = s*7+1, diaFin = Math.min(diaIni+6, diasEnMes);
+    entradasSemana.push(dbData.filter(function(r){
+      var f=parseDate(String(r[IDX.fechaIngreso]||''));
+      return r[IDX.noOrden] && f && f.getMonth()===mes && f.getFullYear()===anio && f.getDate()>=diaIni && f.getDate()<=diaFin;
+    }).length);
+    salidasSemana.push(dbData.filter(function(r){
+      var f=parseDate(String(r[IDX.fechaEntrega]||''));
+      return r[IDX.noOrden] && f && f.getMonth()===mes && f.getFullYear()===anio && f.getDate()>=diaIni && f.getDate()<=diaFin;
+    }).length);
+  }
+  destruirChart('c4');
+  _dirCharts.c4 = new Chart(document.getElementById('dir-c4'), {
+    type:'bar',
+    data:{ labels:labelsSemana, datasets:[
+      { label:'Entradas', data:entradasSemana, backgroundColor:'#E8640A' },
+      { label:'Salidas', data:salidasSemana, backgroundColor:'#2B6CB0' }
+    ]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ font:{size:10} } } } }
+  });
+
+  // Chart 5: conteo por tipo (nuevas del mes)
+  var cGNP = actual.nuevasArr.filter(function(r){ return String(r[IDX.tipoCliente]||'').trim().toLowerCase()==='gnp'; }).length;
+  var cPart = actual.nuevasArr.filter(function(r){ return String(r[IDX.tipoCliente]||'').trim().toLowerCase()==='particular'; }).length;
+  var cCancel = actual.nuevasArr.filter(function(r){ return String(r[IDX.statusTaller]||'').trim().toLowerCase()==='cancelado'; }).length;
+  var cPT = actual.nuevasArr.filter(function(r){ return String(r[IDX.statusVal]||'').trim().toLowerCase()==='perdida total'; }).length;
+  destruirChart('c5');
+  _dirCharts.c5 = new Chart(document.getElementById('dir-c5'), {
+    type:'bar',
+    data:{ labels:['GNP','Particular','Canceladas','Pérdida Total'], datasets:[{ data:[cGNP,cPart,cCancel,cPT], backgroundColor:['#2B6CB0','#E8640A','#718096','#805AD5'] }] },
+    options:{ indexAxis:'y', plugins:{ legend:{ display:false } } }
+  });
+
+  // WIP hoy (foto actual, no depende del mes)
+  var wipVal=0, wipRef=0, wipTall=0, wipVale=0;
+  dbData.forEach(function(r){
+    if (!r[IDX.noOrden]) return;
+    var cat = clasificarOrden(r);
+    if (cat==='valuacion') wipVal++;
+    else if (cat==='refacciones') wipRef++;
+    else if (cat==='transito'||cat==='taller-hojalateria'||cat==='taller-pintura'||cat==='terminado') wipTall++;
+    else if (cat==='vale') wipVale++;
+  });
+  document.getElementById('dir-wip-val').textContent = wipVal;
+  document.getElementById('dir-wip-ref').textContent = wipRef;
+  document.getElementById('dir-wip-tall').textContent = wipTall;
+  document.getElementById('dir-wip-vale').textContent = wipVale;
+}
+
+/* ==================== FIN DASHBOARD DIRECTIVOS ==================== */
+
 function showPage(name){
+  if(name==='dashboard-directivos' && DIRECTIVOS_EMAILS.indexOf(usuarioEmail)<0){
+    toast('No tienes acceso a esta seccion','error');
+    return;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  const navMap={'resumen':0,'asesores':1,'valuacion':2,'refacciones':3,'taller':4,'busqueda':5,'dashboard-trello':6,'dashboard-facturacion':7};
+  const navMap={'resumen':0,'asesores':1,'valuacion':2,'refacciones':3,'taller':4,'busqueda':5,'dashboard-trello':6,'dashboard-facturacion':7,'dashboard-directivos':8};
   const navItems=document.querySelectorAll('.nav-item');
   if(navMap[name]!==undefined)navItems[navMap[name]].classList.add('active');
   if(name==='valuacion'||name==='refacciones'||name==='taller')actualizarTablasPendientes();
   if(name==='asesores'){var hoy=new Date();var dd=String(hoy.getDate()).padStart(2,'0');var mm=String(hoy.getMonth()+1).padStart(2,'0');var yyyy=hoy.getFullYear();var fechaEl=document.getElementById('as-fecha');if(fechaEl)fechaEl.value=yyyy+'-'+mm+'-'+dd;}
   if(name==='dashboard-trello')cargarTrello();
   if(name==='dashboard-facturacion')cargarFact();
+  if(name==='dashboard-directivos')cargarDirectivos();
   if(name==='resumen')cargarDashboard();
 }
 function toast(msg,type){if(!type)type='';const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;setTimeout(()=>el.className='',3500);}
 </script>
 </body>
 </html>
-
