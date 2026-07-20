@@ -484,7 +484,14 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>No. Orden *</label><input type="text" id="as-orden" placeholder="Ej. 2025-001"></div>
               <div class="form-group"><label>Asesor *</label><select id="as-asesor"><option value="">Seleccionar...</option><option>Horacio</option><option>Esteban</option></select></div>
               <div class="form-group"><label>Valuador Asignado</label><select id="as-valuador"><option value="">Seleccionar...</option><option>Roberto</option><option>Cristal</option></select></div>
-              <div class="form-group"><label>Fecha de Ingreso</label><input type="date" id="as-fecha" class="auto" readonly></div>
+              <div class="form-group">
+                <label>Fecha de Ingreso</label>
+                <input type="date" id="as-fecha" class="auto" readonly>
+                <label style="display:flex;align-items:center;gap:5px;margin-top:5px;font-weight:400;font-size:11px;color:var(--gris-medio);cursor:pointer">
+                  <input type="checkbox" id="as-fecha-manual" onchange="toggleFechaManualAsesor()" style="width:auto;margin:0">
+                  Orden atrasada (fecha distinta a hoy)
+                </label>
+              </div>
               <div class="form-group"><label>Deducible</label><select id="as-deducible"><option value="">Seleccionar...</option><option>Si</option><option>No</option></select></div>
               <div class="form-group"><label>Tipo de Cliente</label><select id="as-cliente"><option value="">Seleccionar...</option><option>GNP</option><option>Particular</option></select></div>
               <div class="form-group"><label>Tipo de Unidad</label><input type="text" id="as-unidad" placeholder="Ej. Sedan, SUV..."></div>
@@ -496,7 +503,7 @@ textarea{resize:vertical;min-height:70px}
             </div>
             <div class="btn-group">
               <button class="btn btn-primary" onclick="guardarAsesor()">Guardar Orden</button>
-              <button class="btn btn-ghost" onclick="limpiarForm('as')">Limpiar</button>
+              <button class="btn btn-ghost" onclick="limpiarForm('as');document.getElementById('as-fecha-manual').checked=false;toggleFechaManualAsesor()">Limpiar</button>
             </div>
           </div>
         </div>
@@ -633,7 +640,7 @@ textarea{resize:vertical;min-height:70px}
               <div class="form-group"><label>Pulido %</label><select id="tall-p-pul"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>T.O.T. %</label><select id="tall-p-tot"><option value="">N/A</option><option>25%</option><option>40%</option><option>50%</option><option>80%</option><option>100%</option><option>N/A</option></select></div>
               <div class="form-group"><label>Trabajo Terminado</label><input type="date" id="tall-terminado"></div>
-              <div class="form-group"><label>Status</label><select id="tall-status" onchange="toggleAutoFechaTaller()"><option value="">—</option><option>En transito</option><option>En reparacion</option><option>Vale</option><option>Entregado</option><option>Cancelado</option></select></div>
+              <div class="form-group"><label>Status</label><select id="tall-status" onchange="toggleAutoFechaTaller()"><option value="">—</option><option>En transito</option><option>En reparacion</option><option>Terminado</option><option>Vale</option><option>Entregado</option><option>Entregado PT</option><option>Cancelado</option></select></div>
               <div class="form-group"><label>Fecha de Entrega</label><input type="date" id="tall-fecha-entrega"></div>
             </div>
             <div class="btn-group">
@@ -753,8 +760,8 @@ var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwddj6HwP3HrNzsxy
 // NOTA IMPORTANTE: el rango de columnas ahora llega hasta BG (indice 58 = Facturado).
 // Antes solo llegaba hasta BF (indice 57 = Historial), por lo que la columna
 // Facturado nunca se leia ni se escribia correctamente.
-const ULTIMA_COL = 'BG';
-const MIN_LEN = 59; // indices 0..58
+const ULTIMA_COL = 'BI';
+const MIN_LEN = 61; // indices 0..60 (60 = IngresoManual, 61 en reserva a futuro)
 
 function parseDate(str) {
   if (!str && str !== 0) return null;
@@ -820,7 +827,7 @@ const IDX = {
   pHojalateria:47,pMecanica:48,pPrepPintura:49,pPintura:50,
   pArmado:51,pPulido:52,pTot:53,
   trabajoTerminado:54,statusTaller:55,fechaEntrega:56,
-  historial:57,facturado:58
+  historial:57,facturado:58,ingresoManual:59
 };
 
 let tokenClient, accessToken = null;
@@ -1060,12 +1067,14 @@ function clasificarOrden(row) {
     return val === '100%' || val === 'N/A' || val === '';
   }) && getField(row,IDX.inicioRep);
 
-  if (st === 'entregado' || st === 'cancelado') {
+  if (st === 'entregado' || st === 'entregado pt' || st === 'cancelado') {
     var fechaEnt = parseDate(String(getField(row,IDX.fechaEntrega)||''));
     var hoyD = new Date(); hoyD.setHours(0,0,0,0);
-    if (st === 'entregado' && fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
+    var esEntrega = (st === 'entregado' || st === 'entregado pt');
+    if (esEntrega && fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
     return null;
   }
+  if (st === 'terminado') return 'terminado';
   if (st === 'vale') return 'vale';
   if (st === 'en reparacion') {
     if (terminadoTaller) return 'terminado';
@@ -1267,7 +1276,10 @@ function abrirModal(noOrden) {
   var modalHtml = secciones.map(function(sec) {
     var fieldsHtml = sec.campos.map(function(campo) {
       var lbl = campo[0], val = campo[1];
-      return '<div class="modal-field"><span class="mf-label">'+lbl+'</span><span class="mf-value">'+(val||'-')+'</span></div>';
+      var esManual = (lbl==='Fecha Ingreso' && String(getField(row,IDX.ingresoManual)||'').trim().toLowerCase()==='si');
+      var cls = esManual ? 'mf-value highlight' : 'mf-value';
+      var extra = esManual ? ' <span style="background:#E8640A;color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:7px">Manual</span>' : '';
+      return '<div class="modal-field"><span class="mf-label">'+lbl+'</span><span class="'+cls+'">'+(val||'-')+extra+'</span></div>';
     }).join('');
     return '<div class="modal-section"><div class="modal-section-title" style="background:'+sec.color+'">'+sec.titulo+'</div><div class="modal-grid">'+fieldsHtml+'</div></div>';
   }).join('');
@@ -1483,6 +1495,18 @@ function renderPending(tbodyId,rows,cols,fnAbrir) {
   }).join(''):'<tr><td colspan="'+(cols.length+1)+'" style="text-align:center;color:var(--gris-medio);padding:16px">Sin ordenes pendientes</td></tr>';
 }
 
+function toggleFechaManualAsesor(){
+  var chk=document.getElementById('as-fecha-manual');
+  var inp=document.getElementById('as-fecha');
+  if(!chk||!inp) return;
+  if(chk.checked){
+    inp.readOnly=false; inp.classList.remove('auto');
+  } else {
+    var h=new Date();
+    inp.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+    inp.readOnly=true; inp.classList.add('auto');
+  }
+}
 async function guardarAsesor() {
   const no=document.getElementById('as-orden').value.trim();
   if(!no){toast('Ingresa el No. de Orden','error');return;}
@@ -1502,6 +1526,8 @@ async function guardarAsesor() {
   row[IDX.color]=v('as-color');row[IDX.placas]=v('as-placas');
   row[IDX.fechaReingreso]=v('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
   row[IDX.noSiniestro]=v('as-siniestro');
+  var chkManual=document.getElementById('as-fecha-manual');
+  row[IDX.ingresoManual] = (chkManual && chkManual.checked) ? 'Si' : '';
   row[IDX.historial] = registrarCambio(no, 'Nueva orden');
   while(row.length<MIN_LEN)row.push('');
   try{
@@ -1512,6 +1538,8 @@ async function guardarAsesor() {
     }
     toast('Orden '+no+' guardada OK','success');
     limpiarForm('as');
+    var chkReset=document.getElementById('as-fecha-manual'); if(chkReset) chkReset.checked=false;
+    toggleFechaManualAsesor();
     await cargarBD();
     actualizarTablasPendientes();
   } catch(e){
@@ -1639,13 +1667,26 @@ function toggleAutoFechaRef(){
   }
 }
 function toggleAutoFechaTaller(){
-  var sel=document.getElementById('tall-status'), inp=document.getElementById('tall-fecha-entrega');
-  if(!sel||!inp) return;
-  if(sel.value.trim().toLowerCase()==='entregado'){
-    inp.readOnly=true; inp.classList.add('auto');
-    if(!inp.value){var h=new Date();inp.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');}
-  } else {
-    inp.readOnly=false; inp.classList.remove('auto');
+  var sel=document.getElementById('tall-status');
+  if(!sel) return;
+  var val=sel.value.trim().toLowerCase();
+  var inpEnt=document.getElementById('tall-fecha-entrega');
+  if(inpEnt){
+    if(val==='entregado'||val==='entregado pt'){
+      inpEnt.readOnly=true; inpEnt.classList.add('auto');
+      if(!inpEnt.value){var h=new Date();inpEnt.value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');}
+    } else {
+      inpEnt.readOnly=false; inpEnt.classList.remove('auto');
+    }
+  }
+  var inpTerm=document.getElementById('tall-terminado');
+  if(inpTerm){
+    if(val==='terminado'){
+      inpTerm.readOnly=true; inpTerm.classList.add('auto');
+      if(!inpTerm.value){var h2=new Date();inpTerm.value=h2.getFullYear()+'-'+String(h2.getMonth()+1).padStart(2,'0')+'-'+String(h2.getDate()).padStart(2,'0');}
+    } else {
+      inpTerm.readOnly=false; inpTerm.classList.remove('auto');
+    }
   }
 }
 async function guardarRefacciones(){
@@ -1698,10 +1739,17 @@ async function guardarTaller(){
   row[IDX.tecMecanico]=v('tall-mec');row[IDX.tecArmado]=v('tall-arm');row[IDX.tecPulido]=v('tall-pul');
   row[IDX.pHojalateria]=v('tall-p-hoj');row[IDX.pMecanica]=v('tall-p-mec');row[IDX.pPrepPintura]=v('tall-p-prep');
   row[IDX.pPintura]=v('tall-p-pint');row[IDX.pArmado]=v('tall-p-arm');row[IDX.pPulido]=v('tall-p-pul');
-  row[IDX.pTot]=v('tall-p-tot');row[IDX.trabajoTerminado]=v('tall-terminado');
+  row[IDX.pTot]=v('tall-p-tot');
+  var estadoTall=v('tall-status').trim().toLowerCase();
+  var termExistente=getField(ordenActual,IDX.trabajoTerminado);
+  if(estadoTall==='terminado'){
+    row[IDX.trabajoTerminado] = (termExistente&&termExistente.trim()) ? termExistente : formatDateMX(new Date());
+  } else {
+    row[IDX.trabajoTerminado]=v('tall-terminado');
+  }
   row[IDX.statusTaller]=v('tall-status');
   var fechaEntExistente=getField(ordenActual,IDX.fechaEntrega);
-  if(v('tall-status').trim().toLowerCase()==='entregado'){
+  if(estadoTall==='entregado' || estadoTall==='entregado pt'){
     row[IDX.fechaEntrega] = (fechaEntExistente&&fechaEntExistente.trim()) ? fechaEntExistente : formatDateMX(new Date());
   } else {
     row[IDX.fechaEntrega]=v('tall-fecha-entrega');
@@ -1785,7 +1833,7 @@ function renderBusquedaCampos(row){
       {lbl:'% Pulido',id:'b-ppul',type:'select',idx:IDX.pPulido,opts:['25%','40%','50%','80%','100%','N/A']},
       {lbl:'% TOT',id:'b-ptot',type:'select',idx:IDX.pTot,opts:['25%','40%','50%','80%','100%','N/A']},
       {lbl:'Trabajo Terminado',id:'b-tterm',type:'date',idx:IDX.trabajoTerminado},
-      {lbl:'Status Taller',id:'b-stall',type:'select',idx:IDX.statusTaller,opts:['En transito','En reparacion','Vale','Entregado','Cancelado']},
+      {lbl:'Status Taller',id:'b-stall',type:'select',idx:IDX.statusTaller,opts:['En transito','En reparacion','Terminado','Vale','Entregado','Entregado PT','Cancelado']},
       {lbl:'Fecha de Entrega',id:'b-fentrega',type:'date',idx:IDX.fechaEntrega},
     ]},
     {sec:'Facturacion',fields:[
@@ -1830,7 +1878,11 @@ function renderBusquedaCampos(row){
           input='<input type="'+f.type+'" id="'+f.id+'" value="'+displayVal2+'">';
         }
         const full=f.type==='textarea'?' full':'';
-        return '<div class="form-group'+full+'"><label>'+f.lbl+'</label>'+input+'</div>';
+        var badge='';
+        if(f.id==='b-fecha' && String(getField(row,IDX.ingresoManual)||'').trim().toLowerCase()==='si'){
+          badge=' <span style="background:#E8640A;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;vertical-align:middle">Fecha Manual</span>';
+        }
+        return '<div class="form-group'+full+'"><label>'+f.lbl+badge+'</label>'+input+'</div>';
       }).join('');
     return '<p class="subheader">'+sec.sec+'</p><div class="form-grid">'+fieldsHtml+'</div>';
   }).join('');
@@ -1946,11 +1998,14 @@ async function actualizarOrden(){
   row[IDX.pArmado]=bvOrKeep('b-parm',IDX.pArmado);
   row[IDX.pPulido]=bvOrKeep('b-ppul',IDX.pPulido);
   row[IDX.pTot]=bvOrKeep('b-ptot',IDX.pTot);
-  row[IDX.trabajoTerminado]=bvDate('b-tterm',IDX.trabajoTerminado);
   var estadoTallerFinal = bvOrKeep('b-stall',IDX.statusTaller).trim().toLowerCase();
+  var termExistenteB = row[IDX.trabajoTerminado];
+  row[IDX.trabajoTerminado] = (estadoTallerFinal==='terminado')
+    ? ((termExistenteB&&termExistenteB.trim()) ? termExistenteB : formatDateMX(new Date()))
+    : bvDate('b-tterm',IDX.trabajoTerminado);
   var fechaEntExistenteB = row[IDX.fechaEntrega];
   row[IDX.statusTaller]=bvOrKeep('b-stall',IDX.statusTaller);
-  row[IDX.fechaEntrega] = (estadoTallerFinal==='entregado')
+  row[IDX.fechaEntrega] = (estadoTallerFinal==='entregado' || estadoTallerFinal==='entregado pt')
     ? ((fechaEntExistenteB&&fechaEntExistenteB.trim()) ? fechaEntExistenteB : formatDateMX(new Date()))
     : bvDate('b-fentrega',IDX.fechaEntrega);
   row[IDX.facturado]=bvOrKeep('b-facturado',IDX.facturado);
@@ -2481,7 +2536,7 @@ function showPage(name){
   const navItems=document.querySelectorAll('.nav-item');
   if(navMap[name]!==undefined)navItems[navMap[name]].classList.add('active');
   if(name==='valuacion'||name==='refacciones'||name==='taller')actualizarTablasPendientes();
-  if(name==='asesores'){var hoy=new Date();var dd=String(hoy.getDate()).padStart(2,'0');var mm=String(hoy.getMonth()+1).padStart(2,'0');var yyyy=hoy.getFullYear();var fechaEl=document.getElementById('as-fecha');if(fechaEl)fechaEl.value=yyyy+'-'+mm+'-'+dd;}
+  if(name==='asesores'){var hoy=new Date();var dd=String(hoy.getDate()).padStart(2,'0');var mm=String(hoy.getMonth()+1).padStart(2,'0');var yyyy=hoy.getFullYear();var fechaEl=document.getElementById('as-fecha');var chkEl=document.getElementById('as-fecha-manual');if(chkEl)chkEl.checked=false;if(fechaEl){fechaEl.value=yyyy+'-'+mm+'-'+dd;fechaEl.readOnly=true;fechaEl.classList.add('auto');}}
   if(name==='dashboard-trello')cargarTrello();
   if(name==='dashboard-facturacion')cargarFact();
   if(name==='dashboard-directivos')cargarDirectivos();
