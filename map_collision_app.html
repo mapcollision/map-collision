@@ -460,6 +460,17 @@ textarea{resize:vertical;min-height:70px}
                   <div id="cnt-con-retraso" style="font-size:36px;font-weight:800;color:#C53030">—</div>
                 </div>
               </div>
+              <p style="font-size:11px;font-weight:700;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.3px;margin:16px 0 8px">Pérdidas Totales</p>
+              <div style="display:flex;gap:16px;align-items:center">
+                <div style="flex:1;text-align:center;padding:16px;background:#EBF4FF;border-radius:8px;border:2px solid var(--azul-medio);cursor:pointer" onclick="abrirResModal('pt-pendientes')">
+                  <div style="font-size:10px;font-weight:700;color:var(--azul-medio);text-transform:uppercase;margin-bottom:6px">Pendientes de Entrega</div>
+                  <div id="stat-pt-pendientes" style="font-size:36px;font-weight:800;color:var(--azul-medio)">—</div>
+                </div>
+                <div style="flex:1;text-align:center;padding:16px;background:#F7F8FA;border-radius:8px;border:2px solid var(--gris-medio);cursor:pointer" onclick="abrirResModal('pt-entregadas')">
+                  <div style="font-size:10px;font-weight:700;color:var(--gris-medio);text-transform:uppercase;margin-bottom:6px">Entregadas</div>
+                  <div id="stat-pt-entregadas" style="font-size:36px;font-weight:800;color:var(--gris-medio)">—</div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="card">
@@ -470,19 +481,6 @@ textarea{resize:vertical;min-height:70px}
                 <tbody id="flujo-tbody"><tr><td colspan="3" style="text-align:center;padding:16px;color:var(--gris-medio)">Cargando...</td></tr></tbody>
               </table>
             </div>
-          </div>
-        </div>
-        <div class="subheader">Pérdidas Totales</div>
-        <div style="display:flex;gap:16px;margin-bottom:16px">
-          <div style="flex:1;text-align:center;padding:16px;background:#EBF4FF;border-radius:8px;border:2px solid var(--azul-medio);cursor:pointer" onclick="abrirResModal('pt-pendientes')">
-            <div style="font-size:11px;font-weight:700;color:var(--azul-medio);text-transform:uppercase;margin-bottom:6px">Pérdidas Totales Pendientes de Entrega</div>
-            <div id="stat-pt-pendientes" style="font-size:36px;font-weight:800;color:var(--azul-medio)">—</div>
-            <div style="font-size:10px;color:var(--gris-medio);margin-top:4px">Ordenes activas ahora mismo</div>
-          </div>
-          <div style="flex:1;text-align:center;padding:16px;background:#F7F8FA;border-radius:8px;border:2px solid var(--gris-medio);cursor:pointer" onclick="abrirResModal('pt-entregadas')">
-            <div style="font-size:11px;font-weight:700;color:var(--gris-medio);text-transform:uppercase;margin-bottom:6px">Pérdidas Totales Entregadas</div>
-            <div id="stat-pt-entregadas" style="font-size:36px;font-weight:800;color:var(--gris-medio)">—</div>
-            <div style="font-size:10px;color:var(--gris-medio);margin-top:4px">Este mes - reinicia el 1</div>
           </div>
         </div>
       </div>
@@ -1344,7 +1342,8 @@ async function cargarDashboard() {
   var vencidos=[],enRiesgo=[];
   dbData.forEach(function(r){
     if(!r[IDX.noOrden]) return;
-    if(String(r[IDX.statusTaller]||'').toLowerCase()==='entregado') return;
+    var stVR=String(r[IDX.statusTaller]||'').toLowerCase();
+    if(stVR==='entregado'||stVR==='entregado pt'||stVR==='cancelado') return;
     var fe=parseDate(String(r[IDX.fechaEntregaCalc]||''));
     if(!fe||isNaN(fe.getTime())) return;
     var diff=Math.round((fe-hoy)/86400000);
@@ -1471,7 +1470,8 @@ function renderEstadisticas(hoy, mes, anio) {
   var enTiempo=0, conRetraso=0;
   dbData.forEach(function(r){
     if(!r[IDX.noOrden]) return;
-    if(String(r[IDX.statusTaller]||'').toLowerCase()==='entregado') return;
+    var stAct=String(r[IDX.statusTaller]||'').toLowerCase();
+    if(stAct==='entregado'||stAct==='entregado pt'||stAct==='cancelado') return;
     var fe=parseDate(String(r[IDX.fechaEntregaCalc]||''));
     if(!fe||isNaN(fe.getTime())) return;
     var diff=Math.round((fe-hoy)/86400000);
@@ -1499,8 +1499,9 @@ function renderEstadisticas(hoy, mes, anio) {
     dbData.forEach(function(r){
       var fi=parseDate(String(r[IDX.fechaIngreso]||''));
       if(fi&&fi.toDateString()===dia.toDateString()) nv++;
+      var esEntregaNormalDia = String(r[IDX.statusTaller]||'').trim().toLowerCase()==='entregado';
       var fe=parseDate(String(r[IDX.fechaEntrega]||''));
-      if(fe&&fe.toDateString()===dia.toDateString()) en++;
+      if(esEntregaNormalDia&&fe&&fe.toDateString()===dia.toDateString()) en++;
     });
     var esHoy=dia.toDateString()===hoy.toDateString();
     var estilo=esHoy?'font-weight:700;background:#EBF4FF':'';
@@ -2539,7 +2540,8 @@ async function cargarDirectivos() {
     }).length);
     salidasSemana.push(dbData.filter(function(r){
       var f=parseDate(String(r[IDX.fechaEntrega]||''));
-      return r[IDX.noOrden] && f && f.getMonth()===mes && f.getFullYear()===anio && f.getDate()>=diaIni && f.getDate()<=diaFin;
+      var esEntregaNormal = String(r[IDX.statusTaller]||'').trim().toLowerCase()==='entregado';
+      return r[IDX.noOrden] && esEntregaNormal && f && f.getMonth()===mes && f.getFullYear()===anio && f.getDate()>=diaIni && f.getDate()<=diaFin;
     }).length);
   }
   destruirChart('c4');
