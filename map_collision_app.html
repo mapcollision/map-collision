@@ -445,6 +445,27 @@ textarea{resize:vertical;min-height:70px}
             <div class="res-card-click">Ver listado</div>
           </div>
         </div>
+        <div class="subheader">Pérdidas Totales y Estado de Entregas</div>
+        <div class="res-cards-row">
+          <div class="res-card gris" onclick="abrirResModal('perdida-total')">
+            <div class="res-card-label">Pérdidas Totales</div>
+            <div class="res-card-value" id="stat-perdida-total">—</div>
+            <div class="res-card-sub">Este mes - reinicia el 1</div>
+            <div class="res-card-click">Ver listado</div>
+          </div>
+          <div class="res-card verde" onclick="abrirResModal('entregados')">
+            <div class="res-card-label">Entregados</div>
+            <div class="res-card-value" id="stat-entregados-cmp">—</div>
+            <div class="res-card-sub">Este mes (no incluye PT)</div>
+            <div class="res-card-click">Ver listado</div>
+          </div>
+          <div class="res-card azul" onclick="abrirResModal('pend-entrega')">
+            <div class="res-card-label">Pendientes de Entrega</div>
+            <div class="res-card-value" id="stat-pend-entrega">—</div>
+            <div class="res-card-sub">Ordenes activas ahora mismo</div>
+            <div class="res-card-click">Ver listado</div>
+          </div>
+        </div>
         <div class="subheader">Estadisticas</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
           <div class="card">
@@ -995,15 +1016,25 @@ async function renovarToken() {
 }
 
 async function callAppsScript(data) {
-  if (data.action === 'getData' || data.action === 'ping') {
-    var r = await fetch(APPS_SCRIPT_URL + '?action=' + data.action);
+  var esGet = (data.action === 'getData' || data.action === 'ping');
+  var hacerLlamada = async function() {
+    if (esGet) {
+      var r = await fetch(APPS_SCRIPT_URL + '?action=' + data.action + '&token=' + encodeURIComponent(accessToken||''));
+      return r.json();
+    }
+    var r = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(Object.assign({}, data, {token: accessToken||''}))
+    });
     return r.json();
+  };
+  var result = await hacerLlamada();
+  if (result && result.error && result.error.code === 401) {
+    console.log('Token invalido/vencido, renovando...');
+    await renovarToken();
+    result = await hacerLlamada();
   }
-  var r = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-  return r.json();
+  return result;
 }
 
 async function apiCallWithRetry(fn) {
@@ -1067,11 +1098,13 @@ function clasificarOrden(row) {
     return val === '100%' || val === 'N/A' || val === '';
   }) && getField(row,IDX.inicioRep);
 
-  if (st === 'entregado' || st === 'entregado pt' || st === 'cancelado') {
+  if (st === 'entregado pt') return null; // perdida total: no se muestra en el Trello, no hubo trabajo real
+
+  if (st === 'entregado' || st === 'cancelado') {
     var fechaEnt = parseDate(String(getField(row,IDX.fechaEntrega)||''));
     var hoyD = new Date(); hoyD.setHours(0,0,0,0);
-    var esEntrega = (st === 'entregado' || st === 'entregado pt');
-    if (esEntrega && fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
+    if (st === 'entregado' && sv === 'perdida total') return null; // perdida total tampoco cuenta aunque el status taller diga "Entregado"
+    if (st === 'entregado' && fechaEnt && fechaEnt.toDateString() === hoyD.toDateString()) return 'entregado';
     return null;
   }
   if (st === 'terminado') return 'terminado';
@@ -1341,6 +1374,19 @@ async function cargarDashboard() {
     if(st==='entregado') return false;
     return sv==='autorizada'&&!listoTaller.includes(sr);
   });
+  var perdidaTotal=dbData.filter(function(r){
+    if(!r[IDX.noOrden]) return false;
+    var fi=parseDate(String(r[IDX.fechaIngreso]||''));
+    if(!(fi&&fi.getMonth()===mes&&fi.getFullYear()===anio)) return false;
+    var sv=String(r[IDX.statusVal]||'').toLowerCase();
+    var st=String(r[IDX.statusTaller]||'').toLowerCase();
+    return sv==='perdida total' || st==='entregado pt';
+  });
+  var pendEntrega=dbData.filter(function(r){
+    if(!r[IDX.noOrden]) return false;
+    var st=String(r[IDX.statusTaller]||'').toLowerCase();
+    return st!=='entregado' && st!=='entregado pt' && st!=='cancelado';
+  });
 
   function sel(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
   sel('stat-nuevas',nuevas.length);
@@ -1351,10 +1397,14 @@ async function cargarDashboard() {
   sel('stat-en-riesgo',enRiesgo.length+' en riesgo');
   sel('stat-val-pend',valPend.length);
   sel('stat-ref-pend',refPend.length);
+  sel('stat-perdida-total',perdidaTotal.length);
+  sel('stat-entregados-cmp',entregados.length);
+  sel('stat-pend-entrega',pendEntrega.length);
 
   window._resData={
     nuevas:nuevas, transito:transito, entregados:entregados,
     riesgo:vencidos.concat(enRiesgo),
+    'perdida-total':perdidaTotal, 'pend-entrega':pendEntrega,
     'val-pend':valPend, 'ref-pend':refPend
   };
 
@@ -1369,7 +1419,9 @@ function abrirResModal(tipo) {
     entregados:'Entregas - Este Mes',
     riesgo:'En Riesgo y Vencidos',
     'val-pend':'Valuaciones Pendientes',
-    'ref-pend':'Refacciones Incompletas'
+    'ref-pend':'Refacciones Incompletas',
+    'perdida-total':'Pérdidas Totales - Este Mes',
+    'pend-entrega':'Pendientes de Entrega (activas ahora)'
   };
   var colMap={
     nuevas:['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Ingreso','Status Val.'],
@@ -1377,7 +1429,9 @@ function abrirResModal(tipo) {
     entregados:['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Entrega'],
     riesgo:['No. Orden','Asesor','Tipo Unidad','Clasificacion','Fecha Entrega','Estado'],
     'val-pend':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.'],
-    'ref-pend':['No. Orden','Asesor','Tipo Unidad','Clasificacion','Status Ref.']
+    'ref-pend':['No. Orden','Asesor','Tipo Unidad','Clasificacion','Status Ref.'],
+    'perdida-total':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.','Status Taller'],
+    'pend-entrega':['No. Orden','Asesor','Tipo Unidad','Placas','Status Taller','Status Val.']
   };
   var rows=(window._resData&&window._resData[tipo])||[];
   var hoy=new Date(); hoy.setHours(0,0,0,0);
@@ -1406,6 +1460,10 @@ function abrirResModal(tipo) {
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';
     } else if(tipo==='ref-pend'){
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+(r[IDX.clasificacion]||'')+'</td><td>'+pillStatus(r[IDX.statusRef])+'</td>';
+    } else if(tipo==='perdida-total'){
+      cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td><td>'+pillStatus(r[IDX.statusTaller])+'</td>';
+    } else if(tipo==='pend-entrega'){
+      cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusTaller])+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';
     }
     return '<tr onclick="abrirOrdenBusqueda(&quot;' + no + '&quot;)" style="cursor:pointer">'+cells+'</tr>';
   }).join('');
@@ -1521,10 +1579,10 @@ async function guardarAsesor() {
   if(findRow(no)>=0){toast('La orden '+no+' ya existe en BD','error');return;}
   const row=new Array(MIN_LEN).fill('');
   row[IDX.noOrden]=no;row[IDX.asesor]=v('as-asesor');row[IDX.valuador]=v('as-valuador');
-  row[IDX.fechaIngreso]=v('as-fecha');row[IDX.deducible]=v('as-deducible');
+  row[IDX.fechaIngreso]=vFecha('as-fecha');row[IDX.deducible]=v('as-deducible');
   row[IDX.tipoCliente]=v('as-cliente');row[IDX.tipoUnidad]=v('as-unidad');
   row[IDX.color]=v('as-color');row[IDX.placas]=v('as-placas');
-  row[IDX.fechaReingreso]=v('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
+  row[IDX.fechaReingreso]=vFecha('as-reingreso');row[IDX.observaciones]=v('as-observaciones');
   row[IDX.noSiniestro]=v('as-siniestro');
   var chkManual=document.getElementById('as-fecha-manual');
   row[IDX.ingresoManual] = (chkManual && chkManual.checked) ? 'Si' : '';
@@ -1621,7 +1679,7 @@ async function guardarValuacion() {
   if(fechaBaseISO&&clasif){var d=new Date(fechaBaseISO+'T12:00:00');d.setDate(d.getDate()+dias);fechaCalc=formatDateMX(d);}
   var hoj=parseFloat(v('val-hoj'))||0,mec=parseFloat(v('val-mec'))||0,pint=parseFloat(v('val-pint'))||0,mat=parseFloat(v('val-mat'))||0,ref=parseFloat(v('val-ref'))||0;
   row[IDX.statusVal]=v('val-status');row[IDX.valuacion]=v('val-tipo');
-  row[IDX.fechaPresup]=v('val-presup');row[IDX.fechaValFinal]=ff;
+  row[IDX.fechaPresup]=vFecha('val-presup');row[IDX.fechaValFinal]=vFecha('val-fecha-final');
   row[IDX.montoPrevio]=v('val-monto');row[IDX.complemento]=v('val-complemento');
   row[IDX.moHojalatero]=v('val-hoj');row[IDX.moMecanica]=v('val-mec');row[IDX.moPintura]=v('val-pint');
   row[IDX.materiales]=v('val-mat');row[IDX.refaccionesV]=v('val-ref');row[IDX.subtotal]=hoj+mec+pint+mat+ref;
@@ -1695,12 +1753,12 @@ async function guardarRefacciones(){
   if(!v('ref-status')){toast('Selecciona el Status de Refacciones','error');return;}
   if(v('ref-pz-surt')===''){toast('Ingresa las Piezas Surtidas','error');return;}
   const row=[...ordenActual];while(row.length<MIN_LEN)row.push('');
-  row[IDX.fechaIniRef]=v('ref-fecha-ini');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
+  row[IDX.fechaIniRef]=vFecha('ref-fecha-ini');row[IDX.noRefValuacion]=v('ref-val-piezas');row[IDX.pedidoImpart]=v('ref-inpart');row[IDX.tot]=v('ref-tot');row[IDX.comentarioRef]=v('ref-comentario');row[IDX.statusRef]=v('ref-status');row[IDX.pzSurtidas]=v('ref-pz-surt');row[IDX.pzSalvadas]=v('ref-pz-salv');row[IDX.comentarioPzSalvamento]=v('ref-coment-pz');row[IDX.totalPiezas]=document.getElementById('ref-total-pz').value;
   var fechaFinExistente=getField(ordenActual,IDX.fechaFinRef);
   if(v('ref-status').trim().toLowerCase()==='unidad completa'){
     row[IDX.fechaFinRef] = (fechaFinExistente&&fechaFinExistente.trim()) ? fechaFinExistente : formatDateMX(new Date());
   } else {
-    row[IDX.fechaFinRef]=v('ref-fecha-fin');
+    row[IDX.fechaFinRef]=vFecha('ref-fecha-fin');
   }
   row[IDX.historial]=registrarCambio(row[0],'Refacciones');while(row.length<MIN_LEN)row.push('');
   try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":"+ULTIMA_COL+ordenActualFila,[row]);toast('Refacciones guardadas OK','success');cerrarFormRef();await cargarBD();actualizarTablasPendientes();}catch(e){toast('Error: '+e.message,'error');}
@@ -1734,7 +1792,7 @@ async function guardarTaller(){
   if(!v('tall-ubicacion')){toast('Selecciona la Ubicacion de la Unidad','error');return;}
   if(!v('tall-inicio')){toast('Ingresa la Fecha de Inicio de Reparacion','error');return;}
   const row=[...ordenActual];while(row.length<MIN_LEN)row.push('');
-  row[IDX.ubicacionUnidad]=v('tall-ubicacion');row[IDX.inicioRep]=v('tall-inicio');
+  row[IDX.ubicacionUnidad]=v('tall-ubicacion');row[IDX.inicioRep]=vFecha('tall-inicio');
   row[IDX.tecHojalatero]=v('tall-hoj');row[IDX.prepPintura]=v('tall-prep');row[IDX.tecPintor]=v('tall-pint');
   row[IDX.tecMecanico]=v('tall-mec');row[IDX.tecArmado]=v('tall-arm');row[IDX.tecPulido]=v('tall-pul');
   row[IDX.pHojalateria]=v('tall-p-hoj');row[IDX.pMecanica]=v('tall-p-mec');row[IDX.pPrepPintura]=v('tall-p-prep');
@@ -1745,14 +1803,14 @@ async function guardarTaller(){
   if(estadoTall==='terminado'){
     row[IDX.trabajoTerminado] = (termExistente&&termExistente.trim()) ? termExistente : formatDateMX(new Date());
   } else {
-    row[IDX.trabajoTerminado]=v('tall-terminado');
+    row[IDX.trabajoTerminado]=vFecha('tall-terminado');
   }
   row[IDX.statusTaller]=v('tall-status');
   var fechaEntExistente=getField(ordenActual,IDX.fechaEntrega);
   if(estadoTall==='entregado' || estadoTall==='entregado pt'){
     row[IDX.fechaEntrega] = (fechaEntExistente&&fechaEntExistente.trim()) ? fechaEntExistente : formatDateMX(new Date());
   } else {
-    row[IDX.fechaEntrega]=v('tall-fecha-entrega');
+    row[IDX.fechaEntrega]=vFecha('tall-fecha-entrega');
   }
   row[IDX.historial]=registrarCambio(row[0],'Taller');while(row.length<MIN_LEN)row.push('');
   try{await apiUpdate("'"+DB_SHEET+"'!A"+ordenActualFila+":"+ULTIMA_COL+ordenActualFila,[row]);toast('Taller guardado OK','success');cerrarFormTall();await cargarBD();actualizarTablasPendientes();}
@@ -2143,6 +2201,16 @@ async function exportarExcel(){
   }
 }
 function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function vFecha(id){
+  const el=document.getElementById(id);
+  if(!el||!el.value) return '';
+  const val=el.value.trim();
+  if(val.includes('-') && val.length===10){
+    const p=val.split('-');
+    return p[2]+'/'+p[1]+'/'+p[0];
+  }
+  return val;
+}
 function setVal(id,idx){const el=document.getElementById(id);if(el&&ordenActual)el.value=getField(ordenActual,idx)||'';}
 function setDateInput(id,idx){var el=document.getElementById(id);if(!el||!ordenActual)return;var val=getField(ordenActual,idx)||'';if(val&&val.includes('/')){var p=val.split('/');if(p.length===3)el.value=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}else el.value=val;}
 function limpiarForm(prefix){document.querySelectorAll('[id^="'+prefix+'-"]').forEach(function(el){el.value='';});}
