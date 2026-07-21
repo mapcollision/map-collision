@@ -445,27 +445,6 @@ textarea{resize:vertical;min-height:70px}
             <div class="res-card-click">Ver listado</div>
           </div>
         </div>
-        <div class="subheader">Pérdidas Totales y Estado de Entregas</div>
-        <div class="res-cards-row">
-          <div class="res-card gris" onclick="abrirResModal('perdida-total')">
-            <div class="res-card-label">Pérdidas Totales</div>
-            <div class="res-card-value" id="stat-perdida-total">—</div>
-            <div class="res-card-sub">Este mes - reinicia el 1</div>
-            <div class="res-card-click">Ver listado</div>
-          </div>
-          <div class="res-card verde" onclick="abrirResModal('entregados')">
-            <div class="res-card-label">Entregados</div>
-            <div class="res-card-value" id="stat-entregados-cmp">—</div>
-            <div class="res-card-sub">Este mes (no incluye PT)</div>
-            <div class="res-card-click">Ver listado</div>
-          </div>
-          <div class="res-card azul" onclick="abrirResModal('pend-entrega')">
-            <div class="res-card-label">Pendientes de Entrega</div>
-            <div class="res-card-value" id="stat-pend-entrega">—</div>
-            <div class="res-card-sub">Ordenes activas ahora mismo</div>
-            <div class="res-card-click">Ver listado</div>
-          </div>
-        </div>
         <div class="subheader">Estadisticas</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
           <div class="card">
@@ -491,6 +470,19 @@ textarea{resize:vertical;min-height:70px}
                 <tbody id="flujo-tbody"><tr><td colspan="3" style="text-align:center;padding:16px;color:var(--gris-medio)">Cargando...</td></tr></tbody>
               </table>
             </div>
+          </div>
+        </div>
+        <div class="subheader">Pérdidas Totales</div>
+        <div style="display:flex;gap:16px;margin-bottom:16px">
+          <div style="flex:1;text-align:center;padding:16px;background:#EBF4FF;border-radius:8px;border:2px solid var(--azul-medio);cursor:pointer" onclick="abrirResModal('pt-pendientes')">
+            <div style="font-size:11px;font-weight:700;color:var(--azul-medio);text-transform:uppercase;margin-bottom:6px">Pérdidas Totales Pendientes de Entrega</div>
+            <div id="stat-pt-pendientes" style="font-size:36px;font-weight:800;color:var(--azul-medio)">—</div>
+            <div style="font-size:10px;color:var(--gris-medio);margin-top:4px">Ordenes activas ahora mismo</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:16px;background:#F7F8FA;border-radius:8px;border:2px solid var(--gris-medio);cursor:pointer" onclick="abrirResModal('pt-entregadas')">
+            <div style="font-size:11px;font-weight:700;color:var(--gris-medio);text-transform:uppercase;margin-bottom:6px">Pérdidas Totales Entregadas</div>
+            <div id="stat-pt-entregadas" style="font-size:36px;font-weight:800;color:var(--gris-medio)">—</div>
+            <div style="font-size:10px;color:var(--gris-medio);margin-top:4px">Este mes - reinicia el 1</div>
           </div>
         </div>
       </div>
@@ -1374,18 +1366,19 @@ async function cargarDashboard() {
     if(st==='entregado') return false;
     return sv==='autorizada'&&!listoTaller.includes(sr);
   });
-  var perdidaTotal=dbData.filter(function(r){
+  var ptPendientes=dbData.filter(function(r){
     if(!r[IDX.noOrden]) return false;
-    var fi=parseDate(String(r[IDX.fechaIngreso]||''));
-    if(!(fi&&fi.getMonth()===mes&&fi.getFullYear()===anio)) return false;
     var sv=String(r[IDX.statusVal]||'').toLowerCase();
     var st=String(r[IDX.statusTaller]||'').toLowerCase();
-    return sv==='perdida total' || st==='entregado pt';
+    return sv==='perdida total' && st!=='entregado pt';
   });
-  var pendEntrega=dbData.filter(function(r){
+  var ptEntregadas=dbData.filter(function(r){
     if(!r[IDX.noOrden]) return false;
+    var sv=String(r[IDX.statusVal]||'').toLowerCase();
     var st=String(r[IDX.statusTaller]||'').toLowerCase();
-    return st!=='entregado' && st!=='entregado pt' && st!=='cancelado';
+    if(sv!=='perdida total'||st!=='entregado pt') return false;
+    var fe=parseDate(String(r[IDX.fechaEntrega]||''));
+    return fe&&fe.getMonth()===mes&&fe.getFullYear()===anio;
   });
 
   function sel(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
@@ -1397,14 +1390,13 @@ async function cargarDashboard() {
   sel('stat-en-riesgo',enRiesgo.length+' en riesgo');
   sel('stat-val-pend',valPend.length);
   sel('stat-ref-pend',refPend.length);
-  sel('stat-perdida-total',perdidaTotal.length);
-  sel('stat-entregados-cmp',entregados.length);
-  sel('stat-pend-entrega',pendEntrega.length);
+  sel('stat-pt-pendientes',ptPendientes.length);
+  sel('stat-pt-entregadas',ptEntregadas.length);
 
   window._resData={
     nuevas:nuevas, transito:transito, entregados:entregados,
     riesgo:vencidos.concat(enRiesgo),
-    'perdida-total':perdidaTotal, 'pend-entrega':pendEntrega,
+    'pt-pendientes':ptPendientes, 'pt-entregadas':ptEntregadas,
     'val-pend':valPend, 'ref-pend':refPend
   };
 
@@ -1420,8 +1412,8 @@ function abrirResModal(tipo) {
     riesgo:'En Riesgo y Vencidos',
     'val-pend':'Valuaciones Pendientes',
     'ref-pend':'Refacciones Incompletas',
-    'perdida-total':'Pérdidas Totales - Este Mes',
-    'pend-entrega':'Pendientes de Entrega (activas ahora)'
+    'pt-pendientes':'Pérdidas Totales - Pendientes de Entrega',
+    'pt-entregadas':'Pérdidas Totales - Entregadas Este Mes'
   };
   var colMap={
     nuevas:['No. Orden','Asesor','Tipo Unidad','Placas','Fecha Ingreso','Status Val.'],
@@ -1430,8 +1422,8 @@ function abrirResModal(tipo) {
     riesgo:['No. Orden','Asesor','Tipo Unidad','Clasificacion','Fecha Entrega','Estado'],
     'val-pend':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.'],
     'ref-pend':['No. Orden','Asesor','Tipo Unidad','Clasificacion','Status Ref.'],
-    'perdida-total':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.','Status Taller'],
-    'pend-entrega':['No. Orden','Asesor','Tipo Unidad','Placas','Status Taller','Status Val.']
+    'pt-pendientes':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.','Status Taller'],
+    'pt-entregadas':['No. Orden','Asesor','Tipo Unidad','Placas','Status Val.','Fecha Entrega']
   };
   var rows=(window._resData&&window._resData[tipo])||[];
   var hoy=new Date(); hoy.setHours(0,0,0,0);
@@ -1460,10 +1452,10 @@ function abrirResModal(tipo) {
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';
     } else if(tipo==='ref-pend'){
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+(r[IDX.clasificacion]||'')+'</td><td>'+pillStatus(r[IDX.statusRef])+'</td>';
-    } else if(tipo==='perdida-total'){
+    } else if(tipo==='pt-pendientes'){
       cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td><td>'+pillStatus(r[IDX.statusTaller])+'</td>';
-    } else if(tipo==='pend-entrega'){
-      cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusTaller])+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td>';
+    } else if(tipo==='pt-entregadas'){
+      cells='<td><strong>'+no+'</strong></td><td>'+asesor+'</td><td>'+unidad+'</td><td>'+placas+'</td><td>'+pillStatus(r[IDX.statusVal])+'</td><td>'+(r[IDX.fechaEntrega]||'')+'</td>';
     }
     return '<tr onclick="abrirOrdenBusqueda(&quot;' + no + '&quot;)" style="cursor:pointer">'+cells+'</tr>';
   }).join('');
