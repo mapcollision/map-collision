@@ -676,8 +676,11 @@ textarea{resize:vertical;min-height:70px}
       <!-- DASHBOARD DIRECTIVOS -->
       <div id="page-dashboard-directivos" class="page">
         <div class="page-header">
-          <h2>Dashboard Directivos <span id="dir-mes-badge" style="background:var(--azul-claro);color:var(--azul-medio);font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-left:8px"></span></h2>
-          <button class="btn btn-primary btn-sm" onclick="cargarDirectivos()">&#8635; Actualizar</button>
+          <h2>Dashboard Directivos</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="dir-mes-selector" onchange="cambiarMesDirectivos()" style="padding:6px 10px;border-radius:6px;border:1px solid var(--gris-borde);font-size:12px;color:var(--azul-medio);font-weight:600"></select>
+            <button class="btn btn-primary btn-sm" onclick="cargarDirectivos()">&#8635; Actualizar</button>
+          </div>
         </div>
 
         <p class="subheader">Conteo del Mes</p>
@@ -2422,17 +2425,46 @@ function enMes(fechaStr, mes, anio) {
   return f && !isNaN(f.getTime()) && f.getMonth()===mes && f.getFullYear()===anio;
 }
 
+var MESES_NOMBRES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function poblarSelectorMes(mesSeleccionado, anioSeleccionado) {
+  var sel = document.getElementById('dir-mes-selector');
+  if (!sel) return;
+  if (sel.dataset && sel.dataset.poblado === '1') {
+    sel.value = anioSeleccionado+'-'+mesSeleccionado;
+    return;
+  }
+  var hoy = new Date();
+  var opciones = '';
+  for (var i=0; i<12; i++) {
+    var m = hoy.getMonth()-i, a = hoy.getFullYear();
+    while (m<0) { m+=12; a--; }
+    opciones += '<option value="'+a+'-'+m+'">'+MESES_NOMBRES[m]+' '+a+'</option>';
+  }
+  sel.innerHTML = opciones;
+  sel.value = anioSeleccionado+'-'+mesSeleccionado;
+  if (sel.dataset) sel.dataset.poblado = '1';
+}
+
+function cambiarMesDirectivos() {
+  var sel = document.getElementById('dir-mes-selector');
+  if (!sel || !sel.value) return;
+  var partes = sel.value.split('-');
+  cargarDirectivos(parseInt(partes[1]), parseInt(partes[0]));
+}
+
 function destruirChart(id) {
   if (_dirCharts[id]) { _dirCharts[id].destroy(); delete _dirCharts[id]; }
 }
 
-async function cargarDirectivos() {
+async function cargarDirectivos(mesSel, anioSel) {
   await cargarBD();
   var hoy = new Date();
-  var mes = hoy.getMonth(), anio = hoy.getFullYear();
+  var mes = (mesSel!==undefined && mesSel!==null) ? mesSel : hoy.getMonth();
+  var anio = (anioSel!==undefined && anioSel!==null) ? anioSel : hoy.getFullYear();
   var mesAnt = mes===0?11:mes-1, anioAnt = mes===0?anio-1:anio;
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var badge=document.getElementById('dir-mes-badge'); if(badge) badge.textContent=meses[mes]+' '+anio;
+  poblarSelectorMes(mes, anio);
 
   function calcularKPIs(mesC, anioC) {
     var nuevas = dbData.filter(function(r){ return r[IDX.noOrden] && enMes(r[IDX.fechaIngreso], mesC, anioC); });
